@@ -1,0 +1,57 @@
+name: guitar_assistant
+description: A guitar practice companion app with tuner, metronome, and recording features.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  provider: ^6.1.1
+
+  # Database
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  encrypt: ^5.0.3
+
+  # Audio
+  flutter_detect_pitch: ^0.0.1+1
+  metronome: ^2.0.6
+  record: ^5.0.4
+  audio_analyzer: ^0.1.2
+  flutter_soloud: ^3.5.3
+
+  # Media
+  camera: ^0.10.5+9
+  video_player: ^2.8.2
+  gallery_saver_plus: ^3.2.8
+  share_plus: ^7.2.1
+
+  # Utilities
+  file_picker: ^6.1.1
+  permission_handler: ^11.2.0
+  path_provider: ^2.1.2
+  path: ^1.8.3
+  http: ^1.2.0
+  intl: ^0.19.0
+
+  # UI
+  google_fonts: ^6.1.0
+  flutter_animate: ^4.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  hive_generator: ^2.0.1
+  build_runner: ^2.4.8
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/audio/
+    - assets/images/

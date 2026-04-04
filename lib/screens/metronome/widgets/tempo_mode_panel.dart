@@ -12,33 +12,58 @@ class TempoModePanel extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Tempo Mode', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('节奏模式', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               children: [
                 ChoiceChip(
-                  label: const Text('Manual'),
+                  label: const Text('手动'),
                   selected: provider.tempoMode == TempoMode.manual,
                   onSelected: (_) => provider.setTempoMode(TempoMode.manual),
                 ),
                 ChoiceChip(
-                  label: const Text('Gradual'),
+                  label: Text('渐进 ${provider.targetGradualBpm}'),
                   selected: provider.tempoMode == TempoMode.gradual,
-                  onSelected: (_) => provider.setTempoMode(TempoMode.gradual),
+                  onSelected: (_) {
+                    provider.setTempoMode(TempoMode.gradual);
+                    if (!provider.isPlaying) {
+                      provider.setTargetGradualBpm(provider.bpm + 10);
+                    }
+                  },
                 ),
                 ChoiceChip(
-                  label: const Text('Step'),
+                  label: const Text('步进 +5'),
                   selected: provider.tempoMode == TempoMode.step,
                   onSelected: (_) => provider.setTempoMode(TempoMode.step),
                 ),
                 ChoiceChip(
-                  label: const Text('Interval'),
+                  label: const Text('间隔'),
                   selected: provider.tempoMode == TempoMode.interval,
                   onSelected: (_) => provider.setTempoMode(TempoMode.interval),
                 ),
               ],
             ),
+            // Show current mode description
+            if (provider.tempoMode == TempoMode.gradual) ...[
+              const SizedBox(height: 8),
+              Text(
+                '每 4 拍增加/减少 1 BPM，目标：${provider.targetGradualBpm} BPM',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
+            ] else if (provider.tempoMode == TempoMode.step) ...[
+              const SizedBox(height: 8),
+              Text(
+                '每 4 拍增加 5 BPM',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
+            ] else if (provider.tempoMode == TempoMode.interval) ...[
+              const SizedBox(height: 8),
+              Text(
+                '每 4 拍在当前 BPM 和 ${(provider.bpm ~/ 1.2).clamp(40, 200)} BPM 之间切换',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
+            ],
           ],
         );
       },

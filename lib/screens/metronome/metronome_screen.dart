@@ -13,7 +13,7 @@ class MetronomeScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => MetronomeProvider(),
       child: Scaffold(
-        appBar: AppBar(title: const Text('Metronome')),
+        appBar: AppBar(title: const Text('节拍器')),
         body: Consumer<MetronomeProvider>(
           builder: (context, provider, child) {
             return Padding(
@@ -27,16 +27,23 @@ class MetronomeScreen extends StatelessWidget {
                   const TempoModePanel(),
                   const Spacer(),
                   SizedBox(
-                    width: 200,
-                    height: 200,
+                    width: 120,
+                    height: 120,
                     child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: const CircleBorder(),
+                        backgroundColor: provider.isPlaying
+                            ? Colors.red
+                            : Colors.green,
+                      ),
                       onPressed: provider.togglePlay,
                       child: Icon(
                         provider.isPlaying ? Icons.pause : Icons.play_arrow,
-                        size: 64,
+                        size: 48,
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
                 ],
               ),
             );

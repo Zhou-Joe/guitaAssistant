@@ -16,35 +16,40 @@ class MetronomeScreen extends StatelessWidget {
         appBar: AppBar(title: const Text('节拍器')),
         body: Consumer<MetronomeProvider>(
           builder: (context, provider, child) {
-            return Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  const BpmControl(),
-                  const SizedBox(height: 24),
-                  const TimeSignatureSelector(),
-                  const SizedBox(height: 24),
-                  const TempoModePanel(),
-                  const Spacer(),
-                  SizedBox(
-                    width: 120,
-                    height: 120,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        shape: const CircleBorder(),
-                        backgroundColor: provider.isPlaying
-                            ? Colors.red
-                            : Colors.green,
-                      ),
-                      onPressed: provider.togglePlay,
-                      child: Icon(
-                        provider.isPlaying ? Icons.pause : Icons.play_arrow,
-                        size: 48,
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    const BpmControl(),
+                    const SizedBox(height: 16),
+                    const TimeSignatureSelector(),
+                    const SizedBox(height: 16),
+                    const TempoModePanel(),
+                    const Spacer(),
+                    // Play button
+                    SizedBox(
+                      width: 100,
+                      height: 100,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          shape: const CircleBorder(),
+                          backgroundColor: provider.isPlaying
+                              ? Colors.red
+                              : Colors.green,
+                          elevation: 8,
+                        ),
+                        onPressed: provider.togglePlay,
+                        child: Icon(
+                          provider.isPlaying ? Icons.pause : Icons.play_arrow,
+                          size: 48,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                    const SizedBox(height: 32),
+                  ],
+                ),
               ),
             );
           },

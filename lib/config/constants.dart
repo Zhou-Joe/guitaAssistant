@@ -23,6 +23,9 @@ class AppConstants {
   /// Default tempo value for metronome (BPM).
   static const int defaultBPM = 120;
 
+  /// Default time signature for metronome.
+  static const String defaultTimeSignature = '4/4';
+
   /// Hive box name for application settings.
   static const String settingsBox = 'settings';
 

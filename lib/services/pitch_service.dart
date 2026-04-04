@@ -4,7 +4,6 @@ import 'package:flutter_detect_pitch/flutter_detect_pitch.dart';
 import 'package:guitar_assistant/config/constants.dart';
 
 class PitchService {
-  final FlutterDetectPitch _pitchDetector = FlutterDetectPitch();
   StreamSubscription? _pitchSubscription;
   bool _isListening = false;
   final _pitchController = StreamController<double>.broadcast();
@@ -19,9 +18,8 @@ class PitchService {
 
   Future<void> startListening() async {
     if (_isListening) return;
-    await _pitchDetector.start();
     _isListening = true;
-    _pitchSubscription = _pitchDetector.pitchStream.listen((frequency) {
+    _pitchSubscription = IosPitchDetector.pitchStream.listen((frequency) {
       _pitchController.add(frequency);
       final noteData = _frequencyToNote(frequency);
       _noteController.add(noteData['note'] as String);
@@ -32,7 +30,6 @@ class PitchService {
   Future<void> stopListening() async {
     if (!_isListening) return;
     await _pitchSubscription?.cancel();
-    await _pitchDetector.stop();
     _isListening = false;
   }
 

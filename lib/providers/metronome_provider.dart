@@ -11,6 +11,7 @@ class MetronomeProvider extends ChangeNotifier {
   bool _isPlaying = false;
   int _targetGradualBpm = 0;
   int _gradualIncrement = 5;
+  bool _isInitialized = false;
 
   final Metronome _metronome = Metronome();
 
@@ -18,6 +19,12 @@ class MetronomeProvider extends ChangeNotifier {
   String get timeSignature => _timeSignature;
   TempoMode get tempoMode => _tempoMode;
   bool get isPlaying => _isPlaying;
+
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+    await _metronome.init('assets/audio/metronome_click.wav');
+    _isInitialized = true;
+  }
 
   void setBpm(int bpm) {
     _bpm = bpm.clamp(AppConstants.minBPM, AppConstants.maxBPM);
@@ -34,25 +41,26 @@ class MetronomeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void togglePlay() {
+  Future<void> togglePlay() async {
     if (_isPlaying) {
-      _metronome.stop();
+      _metronome.pause();
     } else {
-      _metronome.start(_bpm);
+      await initialize();
+      _metronome.play();
     }
     _isPlaying = !_isPlaying;
     notifyListeners();
   }
 
-  void stop() {
-    _metronome.stop();
+  Future<void> stop() async {
+    await _metronome.stop();
     _isPlaying = false;
     notifyListeners();
   }
 
   @override
   void dispose() {
-    _metronome.dispose();
+    _metronome.destroy();
     super.dispose();
   }
 }

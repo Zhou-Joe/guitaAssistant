@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' show log;
+import 'package:flutter_detect_pitch/flutter_detect_pitch.dart';
 import 'package:guitar_assistant/config/constants.dart';
 
 class PitchService {
@@ -26,37 +27,25 @@ class PitchService {
   Future<void> startListening() async {
     if (_isListening) return;
 
-    // TODO: 实现真实的音高检测
-    // 目前使用模拟数据来演示功能
     _isListening = true;
-    _simulatePitchDetection();
-  }
 
-  // 模拟音高检测 - 实际使用时需要替换为真实的麦克风输入
-  void _simulatePitchDetection() {
-    // 这里应该使用 microphone 输入进行实时音高检测
-    // 目前用定时器模拟输出
-    var count = 0;
-    _pitchSubscription = Stream.periodic(const Duration(milliseconds: 100), (_) {
-      count++;
-      // 模拟吉他弦频率附近的波动
-      final baseFreq = _targetStringIndex != null
-          ? AppConstants.guitarStringFrequencies[_targetStringIndex!]
-          : 110.0;
-      // 添加一些随机波动模拟真实情况
-      final randomOffset = (count % 10 - 5) * 0.5;
-      final simulatedFreq = baseFreq + randomOffset + (count % 20 - 10);
+    // Listen to the iOS pitch detector stream
+    _pitchSubscription = IosPitchDetector.pitchStream.listen((frequency) {
+      if (frequency > 0 && frequency.isFinite) {
+        _pitchController.add(frequency);
 
-      _pitchController.add(simulatedFreq.abs());
-      final noteData = _frequencyToNote(simulatedFreq.abs());
-      _noteController.add(noteData['note'] as String);
-      _centsController.add(noteData['cents'] as double);
-      _isInTuneController.add(noteData['cents'].abs() <= 5.0);
-    }).listen((_) {});
+        final noteData = _frequencyToNote(frequency);
+        _noteController.add(noteData['note'] as String);
+        final cents = noteData['cents'] as double;
+        _centsController.add(cents);
+        _isInTuneController.add(cents.abs() <= AppConstants.defaultTunerTolerance);
+      }
+    });
   }
 
   Future<void> stopListening() async {
     if (!_isListening) return;
+
     await _pitchSubscription?.cancel();
     _pitchSubscription = null;
     _isListening = false;
@@ -64,12 +53,18 @@ class PitchService {
 
   Map<String, dynamic> _frequencyToNote(double frequency) {
     if (frequency <= 0) return {'note': '', 'cents': 0.0, 'octave': 0};
+
     final a4 = 440.0;
     final semitones = 12 * (log(frequency / a4) / log(2));
     final noteIndex = ((semitones.round() % 12) + 12) % 12;
     final octave = (semitones / 12).floor() + 4;
     final cents = (semitones - semitones.round()) * 100;
-    return {'note': notes[noteIndex], 'cents': cents, 'octave': octave};
+
+    return {
+      'note': notes[noteIndex],
+      'cents': cents,
+      'octave': octave,
+    };
   }
 
   int getNearestStringIndex(double frequency) {
@@ -77,12 +72,18 @@ class PitchService {
     if (_targetStringIndex != null) {
       return _targetStringIndex!;
     }
+
     int nearestIndex = 0;
     double minDiff = double.infinity;
+
     for (int i = 0; i < AppConstants.guitarStringFrequencies.length; i++) {
       final diff = (frequency - AppConstants.guitarStringFrequencies[i]).abs();
-      if (diff < minDiff) { minDiff = diff; nearestIndex = i; }
+      if (diff < minDiff) {
+        minDiff = diff;
+        nearestIndex = i;
+      }
     }
+
     return nearestIndex;
   }
 

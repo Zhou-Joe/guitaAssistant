@@ -6,6 +6,8 @@ import '../tuner/tuner_screen.dart';
 import '../metronome/metronome_screen.dart';
 import '../favorites/favorites_screen.dart';
 import '../recording/recording_screen.dart';
+import '../analysis/analysis_screen.dart';
+import '../settings/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -32,6 +34,8 @@ class _HomeScreenState extends State<HomeScreen> {
           const MetronomeScreen(),
           const FavoritesScreen(),
           const RecordingScreen(),
+          const AnalysisScreen(),
+          const SettingsScreen(),
         ],
       ),
       bottomNavigationBar: BottomNav(

@@ -17,23 +17,26 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Analysis'),
-        bottom: TabBar(
-          tabs: const [
-            Tab(text: 'Waveform'),
-            Tab(text: 'Timeline'),
-            Tab(text: 'Heatmap'),
-          ],
-          onTap: (index) {
-            setState(() {
-              _currentView = AnalysisViewType.values[index];
-            });
-          },
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Analysis'),
+          bottom: TabBar(
+            tabs: const [
+              Tab(text: 'Waveform'),
+              Tab(text: 'Timeline'),
+              Tab(text: 'Heatmap'),
+            ],
+            onTap: (index) {
+              setState(() {
+                _currentView = AnalysisViewType.values[index];
+              });
+            },
+          ),
         ),
+        body: _buildCurrentView(),
       ),
-      body: _buildCurrentView(),
     );
   }
 

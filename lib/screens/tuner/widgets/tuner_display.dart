@@ -10,6 +10,7 @@ class TunerDisplay extends StatelessWidget {
   final double? targetFrequency;
   final bool isInTune;
   final bool isListening;
+  final String? errorMessage;
 
   const TunerDisplay({
     super.key,
@@ -21,6 +22,7 @@ class TunerDisplay extends StatelessWidget {
     this.targetFrequency,
     required this.isInTune,
     required this.isListening,
+    this.errorMessage,
   });
 
   @override
@@ -146,7 +148,10 @@ class TunerDisplay extends StatelessWidget {
     String status;
     Color color;
 
-    if (!isListening) {
+    if (errorMessage != null) {
+      status = errorMessage!;
+      color = AppColors.error;
+    } else if (!isListening) {
       status = '点击"开始调音"开始';
       color = Colors.grey.shade600;
     } else if (frequency <= 0) {

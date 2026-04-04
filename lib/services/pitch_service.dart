@@ -1,12 +1,15 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'dart:math' show log;
 import 'package:flutter_detect_pitch/flutter_detect_pitch.dart';
 import 'package:guitar_assistant/config/constants.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class PitchService {
   StreamSubscription? _pitchSubscription;
   bool _isListening = false;
   int? _targetStringIndex; // 用户选择的目标琴弦
+  bool get isListening => _isListening;
   final _pitchController = StreamController<double>.broadcast();
   final _noteController = StreamController<String>.broadcast();
   final _centsController = StreamController<double>.broadcast();
@@ -27,20 +30,37 @@ class PitchService {
   Future<void> startListening() async {
     if (_isListening) return;
 
-    _isListening = true;
-
-    // Listen to the iOS pitch detector stream
-    _pitchSubscription = IosPitchDetector.pitchStream.listen((frequency) {
-      if (frequency > 0 && frequency.isFinite) {
-        _pitchController.add(frequency);
-
-        final noteData = _frequencyToNote(frequency);
-        _noteController.add(noteData['note'] as String);
-        final cents = noteData['cents'] as double;
-        _centsController.add(cents);
-        _isInTuneController.add(cents.abs() <= AppConstants.defaultTunerTolerance);
+    // Request microphone permission on iOS
+    if (Platform.isIOS) {
+      final status = await Permission.microphone.request();
+      if (status != PermissionStatus.granted) {
+        print('Microphone permission not granted: $status');
+        return;
       }
-    });
+    }
+
+    try {
+      _isListening = true;
+
+      // Listen to the iOS pitch detector stream
+      _pitchSubscription = IosPitchDetector.pitchStream.listen((frequency) {
+        if (frequency > 0 && frequency.isFinite) {
+          _pitchController.add(frequency);
+
+          final noteData = _frequencyToNote(frequency);
+          _noteController.add(noteData['note'] as String);
+          final cents = noteData['cents'] as double;
+          _centsController.add(cents);
+          _isInTuneController.add(cents.abs() <= AppConstants.defaultTunerTolerance);
+        }
+      }, onError: (error) {
+        print('Pitch detection error: $error');
+        _isListening = false;
+      });
+    } catch (e) {
+      print('Error starting pitch detection: $e');
+      _isListening = false;
+    }
   }
 
   Future<void> stopListening() async {

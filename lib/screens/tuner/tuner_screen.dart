@@ -45,6 +45,7 @@ class _TunerScreenState extends State<TunerScreen> {
                         : null,
                     isInTune: provider.isInTune,
                     isListening: provider.isListening,
+                    errorMessage: provider.errorMessage,
                   ),
                 ),
                 // 琴弦选择

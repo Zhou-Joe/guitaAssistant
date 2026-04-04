@@ -11,6 +11,7 @@ class TunerProvider extends ChangeNotifier {
   int? _selectedStringIndex; // 用户选择的琴弦
   bool _isListening = false;
   bool _isInTune = false;
+  String? _errorMessage; // Error message for permission issues
 
   double get currentFrequency => _currentFrequency;
   String get detectedNote => _detectedNote;
@@ -20,6 +21,7 @@ class TunerProvider extends ChangeNotifier {
   int? get selectedStringIndex => _selectedStringIndex;
   bool get isListening => _isListening;
   bool get isInTune => _isInTune;
+  String? get errorMessage => _errorMessage;
 
   // 获取目标琴弦的频率
   double? get targetFrequency =>
@@ -39,10 +41,21 @@ class TunerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void startListening() {
+  Future<void> startListening() async {
     if (_isListening) return;
+    _errorMessage = null;
     _isListening = true;
-    _pitchService.startListening();
+    notifyListeners();
+
+    await _pitchService.startListening();
+
+    // Check if listening actually started (permission granted)
+    if (!_pitchService.isListening) {
+      _errorMessage = '需要麦克风权限才能进行调音';
+      _isListening = false;
+      notifyListeners();
+      return;
+    }
 
     // 监听音高数据
     _pitchService.pitchStream.listen((freq) {

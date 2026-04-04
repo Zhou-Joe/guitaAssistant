@@ -1,1 +1,39 @@
 .worktrees
+
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub/
+build/
+*.iml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# iOS
+ios/Pods/
+ios/Podfile.lock
+**/Pods/
+**/*.xcworkspace
+!*.xcodeproj
+!*.xcworkspace/contents.xcworkspacedata
+
+# Android
+android/**/build/
+android/.gradle/
+android/captures/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+**/*.apk
+**/*.aab
+**/*.app
+
+# macOS
+.DS_Store

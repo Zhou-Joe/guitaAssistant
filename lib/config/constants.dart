@@ -37,4 +37,13 @@ class AppConstants {
 
   /// Hive box name for AI configuration settings.
   static const String aiConfigBox = 'ai_config';
+
+  /// Folder name for tabs.
+  static const String tabsFolder = 'tabs';
+
+  /// Folder name for recordings.
+  static const String recordingsFolder = 'recordings';
+
+  /// Folder name for analysis results.
+  static const String analysisFolder = 'analysis';
 }

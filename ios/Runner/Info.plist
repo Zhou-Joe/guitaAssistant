@@ -66,5 +66,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone access is needed for tuner, metronome, and recording features</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera access is needed for video recording</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo library access is needed to save and share recordings</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Photo library save access is needed to export recordings</string>
 </dict>
 </plist>

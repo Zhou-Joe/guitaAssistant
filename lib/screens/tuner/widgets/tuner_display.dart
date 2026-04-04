@@ -27,63 +27,67 @@ class TunerDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.primary.withOpacity(0.1),
-            AppColors.secondary.withOpacity(0.1),
+    return SingleChildScrollView(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.primary.withOpacity(0.1),
+              AppColors.secondary.withOpacity(0.1),
+            ],
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 16),
+            // 目标音符显示
+            if (selectedStringNote != null) ...[
+              Text(
+                '目标：$selectedStringNote',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            // 检测到的音符
+            Text(
+              isListening && detectedNote.isNotEmpty ? detectedNote : '--',
+              style: TextStyle(
+                fontSize: 64,
+                fontWeight: FontWeight.bold,
+                color: isInTune ? AppColors.success : AppColors.primary,
+              ),
+            ),
+            // 频率显示
+            if (isListening && frequency > 0) ...[
+              const SizedBox(height: 8),
+              Text(
+                '${frequency.toStringAsFixed(1)} Hz',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            // 音高偏差指示器
+            _buildPitchDeviationIndicator(),
+            const SizedBox(height: 16),
+            // 状态提示
+            _buildStatusText(context),
+            // 动画环
+            if (isListening) ...[
+              const SizedBox(height: 16),
+              _buildAnimatedRing(),
+            ],
+            const SizedBox(height: 16),
           ],
         ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // 目标音符显示
-          if (selectedStringNote != null) ...[
-            Text(
-              '目标：$selectedStringNote',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-          // 检测到的音符
-          Text(
-            isListening && detectedNote.isNotEmpty ? detectedNote : '--',
-            style: TextStyle(
-              fontSize: 64,
-              fontWeight: FontWeight.bold,
-              color: isInTune ? AppColors.success : AppColors.primary,
-            ),
-          ),
-          // 频率显示
-          if (isListening && frequency > 0) ...[
-            const SizedBox(height: 8),
-            Text(
-              '${frequency.toStringAsFixed(1)} Hz',
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.grey.shade600,
-              ),
-            ),
-          ],
-          const SizedBox(height: 24),
-          // 音高偏差指示器
-          _buildPitchDeviationIndicator(),
-          const SizedBox(height: 16),
-          // 状态提示
-          _buildStatusText(context),
-          // 动画环
-          if (isListening) ...[
-            const SizedBox(height: 24),
-            _buildAnimatedRing(),
-          ],
-        ],
       ),
     );
   }

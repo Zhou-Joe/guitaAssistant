@@ -1,6 +1,8 @@
+import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:guitar_assistant/services/pitch_service.dart';
 import 'package:guitar_assistant/config/constants.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class TunerProvider extends ChangeNotifier {
   final PitchService _pitchService = PitchService();
@@ -47,12 +49,43 @@ class TunerProvider extends ChangeNotifier {
     _isListening = true;
     notifyListeners();
 
-    await _pitchService.startListening();
+    // Request microphone permission on iOS
+    if (Platform.isIOS) {
+      final status = await Permission.microphone.request();
+      if (status != PermissionStatus.granted) {
+        print('Microphone permission not granted: $status');
+        _isListening = false;
 
-    // Check if listening actually started (permission granted)
-    if (!_pitchService.isListening) {
-      _errorMessage = '需要麦克风权限才能进行调音';
+        // If permanently denied, we need to open settings
+        if (status == PermissionStatus.permanentlyDenied ||
+            status == PermissionStatus.restricted) {
+          _errorMessage = '麦克风权限已被拒绝，请在系统设置中启用';
+          // Open settings after a short delay
+          Future.delayed(const Duration(milliseconds: 500), () {
+            openAppSettings();
+          });
+        } else {
+          _errorMessage = '需要麦克风权限才能进行调音';
+        }
+        notifyListeners();
+        return;
+      }
+    }
+
+    try {
+      await _pitchService.startListening();
+
+      // Check if listening actually started (permission granted)
+      if (!_pitchService.isListening) {
+        _errorMessage = '需要麦克风权限才能进行调音';
+        _isListening = false;
+        notifyListeners();
+        return;
+      }
+    } catch (e) {
+      print('Error starting pitch detection: $e');
       _isListening = false;
+      _errorMessage = '无法启动麦克风：$e';
       notifyListeners();
       return;
     }

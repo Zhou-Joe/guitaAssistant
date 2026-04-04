@@ -10,6 +10,7 @@ class AppColors {
   static const Color background = Color(0xFFF7FFF7);
   static const Color card = Color(0xFFFFFFFF);
   static const Color text = Color(0xFF2D3436);
+  static const Color textLight = Color(0xFF99AAB5);
 }
 
 class AppTheme {

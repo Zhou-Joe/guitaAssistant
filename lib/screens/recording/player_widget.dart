@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guitar_assistant/data/models/recording.dart';
 
 class PlayerWidget extends StatelessWidget {
   final String filePath;

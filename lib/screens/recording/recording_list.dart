@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:guitar_assistant/providers/recording_provider.dart';
 import 'package:guitar_assistant/data/models/recording.dart';
-import 'player_widget.dart';
 
 class RecordingList extends StatelessWidget {
   const RecordingList({super.key});

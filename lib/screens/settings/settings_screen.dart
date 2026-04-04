@@ -11,10 +11,10 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         children: [
           ListTile(
-            leading: const Icon('smart_display'),
+            leading: const Icon(Icons.smart_display),
             title: const Text('AI Configuration'),
             subtitle: const Text('Configure multimodal API endpoint'),
-            trailing: const Icon('chevron_right'),
+            trailing: const Icon(Icons.chevron_right),
             onTap: () {
               Navigator.push(
                 context,
@@ -24,7 +24,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           const Divider(),
           ListTile(
-            leading: const Icon('info_outline'),
+            leading: const Icon(Icons.info_outline),
             title: const Text('About'),
             subtitle: const Text('Guitar Assistant v1.0.0'),
           ),

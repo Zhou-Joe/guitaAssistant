@@ -9,8 +9,6 @@ class MetronomeProvider extends ChangeNotifier {
   String _timeSignature = AppConstants.defaultTimeSignature;
   TempoMode _tempoMode = TempoMode.manual;
   bool _isPlaying = false;
-  int _targetGradualBpm = 0;
-  int _gradualIncrement = 5;
   bool _isInitialized = false;
 
   final Metronome _metronome = Metronome();

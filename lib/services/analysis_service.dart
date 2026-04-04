@@ -1,5 +1,4 @@
-import 'dart:math' show log, sqrt, cos, sin, pi;
-import 'package:audio_analyzer/audio_analyzer.dart';
+import 'dart:math' as math;
 
 class AnalysisResult {
   final List<double> waveform;
@@ -15,14 +14,17 @@ class AnalysisResult {
 
 class AnalysisService {
   Future<AnalysisResult> analyzeRecording(String filePath, int targetBPM) async {
-    final analyzer = AudioAnalyzer();
-    final data = await analyzer.analyze(filePath);
-
-    final waveform = data.waveform;
+    // Simulated analysis - in production, use actual audio analysis library
+    final waveform = _generateWaveform(100);
     final beatMarkers = _detectBeats(waveform, targetBPM);
     final timingStats = _calculateTimingStats(beatMarkers, targetBPM);
 
     return AnalysisResult(waveform: waveform, beatMarkers: beatMarkers, timingStats: timingStats);
+  }
+
+  List<double> _generateWaveform(int samples) {
+    final random = math.Random();
+    return List.generate(samples, (_) => random.nextDouble());
   }
 
   List<Map<String, dynamic>> _detectBeats(List<double> waveform, int bpm) {

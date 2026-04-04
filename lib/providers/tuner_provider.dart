@@ -8,31 +8,61 @@ class TunerProvider extends ChangeNotifier {
   String _detectedNote = '';
   double _cents = 0;
   int _nearestStringIndex = 0;
+  int? _selectedStringIndex; // 用户选择的琴弦
   bool _isListening = false;
+  bool _isInTune = false;
 
   double get currentFrequency => _currentFrequency;
   String get detectedNote => _detectedNote;
   double get cents => _cents;
   int get nearestStringIndex => _nearestStringIndex;
   String get nearestStringNote => AppConstants.guitarStringNotes[_nearestStringIndex];
+  int? get selectedStringIndex => _selectedStringIndex;
   bool get isListening => _isListening;
-  bool get isInTune => _cents.abs() <= AppConstants.defaultTunerTolerance;
+  bool get isInTune => _isInTune;
+
+  // 获取目标琴弦的频率
+  double? get targetFrequency =>
+      _selectedStringIndex != null
+          ? AppConstants.guitarStringFrequencies[_selectedStringIndex!]
+          : null;
+
+  // 获取目标琴弦的音符
+  String? get targetNote =>
+      _selectedStringIndex != null
+          ? AppConstants.guitarStringNotes[_selectedStringIndex!]
+          : null;
+
+  void setSelectedString(int? index) {
+    _selectedStringIndex = index;
+    _pitchService.setTargetString(index);
+    notifyListeners();
+  }
 
   void startListening() {
     if (_isListening) return;
     _isListening = true;
     _pitchService.startListening();
+
+    // 监听音高数据
     _pitchService.pitchStream.listen((freq) {
       _currentFrequency = freq;
-      _nearestStringIndex = _pitchService.getNearestStringIndex(freq);
+      if (_selectedStringIndex != null) {
+        _nearestStringIndex = _selectedStringIndex!;
+      } else {
+        _nearestStringIndex = _pitchService.getNearestStringIndex(freq);
+      }
       notifyListeners();
     });
+
     _pitchService.noteStream.listen((note) {
       _detectedNote = note;
       notifyListeners();
     });
+
     _pitchService.centsStream.listen((cents) {
       _cents = cents;
+      _isInTune = cents.abs() <= AppConstants.defaultTunerTolerance;
       notifyListeners();
     });
   }
@@ -44,6 +74,7 @@ class TunerProvider extends ChangeNotifier {
     _currentFrequency = 0;
     _detectedNote = '';
     _cents = 0;
+    _isInTune = false;
     notifyListeners();
   }
 

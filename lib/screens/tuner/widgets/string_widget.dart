@@ -25,39 +25,44 @@ class GuitarStringWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     Color bgColor;
     Color borderColor;
+    Color accentColor;
 
     if (isInTune) {
-      bgColor = AppColors.success.withOpacity(0.3);
-      borderColor = AppColors.success;
+      bgColor = AppColors.cta.withValues(alpha: 0.15);
+      borderColor = AppColors.cta;
+      accentColor = AppColors.cta;
     } else if (isDetected) {
-      bgColor = AppColors.warning.withOpacity(0.3);
+      bgColor = AppColors.warning.withValues(alpha: 0.15);
       borderColor = AppColors.warning;
+      accentColor = AppColors.warning;
     } else if (isSelected) {
-      bgColor = AppColors.primary.withOpacity(0.2);
-      borderColor = AppColors.primary;
+      bgColor = AppColors.secondary.withValues(alpha: 0.2);
+      borderColor = AppColors.secondary;
+      accentColor = AppColors.secondary;
     } else {
-      bgColor = AppColors.card;
-      borderColor = Colors.grey.shade300;
+      bgColor = AppColors.surface;
+      borderColor = AppColors.surfaceElevated;
+      accentColor = AppColors.textMuted;
     }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
         color: bgColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: bgColor,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: borderColor, width: 2),
               boxShadow: [
                 if (isSelected || isDetected)
                   BoxShadow(
-                    color: borderColor.withOpacity(0.3),
+                    color: borderColor.withValues(alpha: 0.3),
                     blurRadius: 8,
                     spreadRadius: 2,
                   ),
@@ -70,14 +75,14 @@ class GuitarStringWidget extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: borderColor,
+                    color: accentColor,
                     shape: BoxShape.circle,
                   ),
                   child: Center(
                     child: Text(
                       stringNumber.toString(),
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
@@ -96,9 +101,9 @@ class GuitarStringWidget extends StatelessWidget {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              Colors.grey.shade400,
-                              Colors.grey.shade600,
-                              Colors.grey.shade400,
+                              AppColors.textMuted.withValues(alpha: 0.3),
+                              AppColors.textSecondary.withValues(alpha: 0.5),
+                              AppColors.textMuted.withValues(alpha: 0.3),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(2),
@@ -106,9 +111,9 @@ class GuitarStringWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '弦 ${stringNumber}',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
+                        '弦 $stringNumber',
+                        style: const TextStyle(
+                          color: AppColors.textMuted,
                           fontSize: 12,
                         ),
                       ),
@@ -124,14 +129,14 @@ class GuitarStringWidget extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: borderColor,
+                        color: isInTune ? AppColors.cta : (isDetected ? AppColors.warning : AppColors.textPrimary),
                       ),
                     ),
                     Text(
                       '${frequency.toStringAsFixed(2)} Hz',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: AppColors.textMuted,
                       ),
                     ),
                   ],
@@ -140,7 +145,7 @@ class GuitarStringWidget extends StatelessWidget {
                   const SizedBox(width: 12),
                   const Icon(
                     Icons.check_circle,
-                    color: AppColors.success,
+                    color: AppColors.cta,
                     size: 32,
                   ),
                 ],

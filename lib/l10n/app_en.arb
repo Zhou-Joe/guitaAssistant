@@ -1,0 +1,247 @@
+{
+  "@@locale": "en",
+  "appTitle": "Guitar Assistant",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "home": "Home",
+  "@home": {
+    "description": "Home tab label"
+  },
+  "tuner": "Tuner",
+  "@tuner": {
+    "description": "Tuner tab label"
+  },
+  "metronome": "Metronome",
+  "@metronome": {
+    "description": "Metronome tab label"
+  },
+  "favorites": "Favorites",
+  "@favorites": {
+    "description": "Favorites tab label"
+  },
+  "record": "Record",
+  "@record": {
+    "description": "Record tab label"
+  },
+  "analysis": "Analysis",
+  "@analysis": {
+    "description": "Analysis tab label"
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings tab label"
+  },
+  "tunerSubtitle": "6-string guitar tuner",
+  "@tunerSubtitle": {
+    "description": "Tuner card subtitle on home screen"
+  },
+  "metronomeSubtitle": "Practice with tempo",
+  "@metronomeSubtitle": {
+    "description": "Metronome card subtitle on home screen"
+  },
+  "favoritesSubtitle": "Your guitar tabs",
+  "@favoritesSubtitle": {
+    "description": "Favorites card subtitle on home screen"
+  },
+  "recordSubtitle": "Record practice",
+  "@recordSubtitle": {
+    "description": "Record card subtitle on home screen"
+  },
+  "analysisSubtitle": "Analyze your playing",
+  "@analysisSubtitle": {
+    "description": "Analysis card subtitle on home screen"
+  },
+  "settingsSubtitle": "App configuration",
+  "@settingsSubtitle": {
+    "description": "Settings card subtitle on home screen"
+  },
+  "tapToStartTuning": "Tap to start tuning",
+  "@tapToStartTuning": {
+    "description": "Instruction to start tuning"
+  },
+  "selectString": "Select a string",
+  "@selectString": {
+    "description": "Instruction to select a guitar string"
+  },
+  "standardTuning": "Standard Tuning",
+  "@standardTuning": {
+    "description": "Standard guitar tuning mode"
+  },
+  "bpm": "BPM",
+  "@bpm": {
+    "description": "Beats per minute"
+  },
+  "bpmValue": "{bpm} BPM",
+  "@bpmValue": {
+    "description": "BPM display with value",
+    "placeholders": {
+      "bpm": {
+        "type": "int",
+        "example": "120"
+      }
+    }
+  },
+  "timeSignature": "Time Signature",
+  "@timeSignature": {
+    "description": "Time signature setting"
+  },
+  "tempoMode": "Tempo Mode",
+  "@tempoMode": {
+    "description": "Tempo mode setting"
+  },
+  "sound": "Sound",
+  "@sound": {
+    "description": "Sound selection"
+  },
+  "normal": "Normal",
+  "@normal": {
+    "description": "Normal tempo mode"
+  },
+  "accent": "Accent",
+  "@accent": {
+    "description": "Accent tempo mode"
+  },
+  "random": "Random",
+  "@random": {
+    "description": "Random tempo mode"
+  },
+  "classic": "Classic",
+  "@classic": {
+    "description": "Classic click sound"
+  },
+  "digital": "Digital",
+  "@digital": {
+    "description": "Digital click sound"
+  },
+  "woodblock": "Woodblock",
+  "@woodblock": {
+    "description": "Woodblock click sound"
+  },
+  "hihat": "Hi-Hat",
+  "@hihat": {
+    "description": "Hi-Hat click sound"
+  },
+  "cowbell": "Cowbell",
+  "@cowbell": {
+    "description": "Cowbell click sound"
+  },
+  "aiFeatures": "AI Features",
+  "@aiFeatures": {
+    "description": "AI features section header"
+  },
+  "aiConfiguration": "AI Configuration",
+  "@aiConfiguration": {
+    "description": "AI configuration menu item"
+  },
+  "configureMultimodalApi": "Configure multimodal API endpoint",
+  "@configureMultimodalApi": {
+    "description": "AI configuration subtitle"
+  },
+  "language": "Language",
+  "@language": {
+    "description": "Language section header"
+  },
+  "about": "About",
+  "@about": {
+    "description": "About section header"
+  },
+  "version": "Version {version}",
+  "@version": {
+    "description": "Version display",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.0"
+      }
+    }
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Retry button"
+  },
+  "failedToInitializeStorage": "Failed to initialize storage",
+  "@failedToInitializeStorage": {
+    "description": "Error message when storage fails"
+  },
+  "string": "String {number}",
+  "@string": {
+    "description": "Guitar string label",
+    "placeholders": {
+      "number": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "start": "Start",
+  "@start": {
+    "description": "Start button label"
+  },
+  "stop": "Stop",
+  "@stop": {
+    "description": "Stop button label"
+  },
+  "pause": "Pause",
+  "@pause": {
+    "description": "Pause button label"
+  },
+  "manual": "Manual",
+  "@manual": {
+    "description": "Manual tempo mode"
+  },
+  "gradual": "Gradual",
+  "@gradual": {
+    "description": "Gradual tempo mode"
+  },
+  "step": "Step +5",
+  "@step": {
+    "description": "Step tempo mode"
+  },
+  "interval": "Interval",
+  "@interval": {
+    "description": "Interval tempo mode"
+  },
+  "gradualTarget": "Gradual → {target}",
+  "@gradualTarget": {
+    "description": "Gradual tempo mode with target BPM",
+    "placeholders": {
+      "target": {
+        "type": "int",
+        "example": "120"
+      }
+    }
+  },
+  "stepPlus": "Step +5",
+  "@stepPlus": {
+    "description": "Step tempo mode display"
+  },
+  "intervalAlternating": "Interval Alternating",
+  "@intervalAlternating": {
+    "description": "Interval tempo mode display"
+  },
+  "firstBeatAccent": "First beat is accent",
+  "@firstBeatAccent": {
+    "description": "Time signature hint"
+  },
+  "manualDescription": "Manual control, tempo stays constant",
+  "@manualDescription": {
+    "description": "Manual mode description"
+  },
+  "gradualDescription": "Auto ±1 BPM every 4 beats, gradual change",
+  "@gradualDescription": {
+    "description": "Gradual mode description"
+  },
+  "stepDescription": "Auto +5 BPM every 4 beats, step increase",
+  "@stepDescription": {
+    "description": "Step mode description"
+  },
+  "intervalDescription": "High/low speed alternating, switches every 4 beats",
+  "@intervalDescription": {
+    "description": "Interval mode description"
+  },
+  "targetBpm": "Target BPM: ",
+  "@targetBpm": {
+    "description": "Target BPM label"
+  }
+}

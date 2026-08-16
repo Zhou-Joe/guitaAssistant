@@ -6,13 +6,25 @@ class AppConstants {
   /// Tuner tolerance in cents (how close to note is considered "in tune").
   static const double defaultTunerTolerance = 5.0;
 
-  /// Standard guitar tuning frequencies in Hz (E2, A2, D3, G3, B3, E4).
+  /// Standard guitar tuning frequencies in Hz.
+  /// Index 0 = String 6 (Low E2), Index 5 = String 1 (High E4)
   static const List<double> guitarStringFrequencies = [
-    82.41, 110.00, 146.83, 196.00, 246.94, 329.63,
+    82.41,   // String 6: E2 (Low E)
+    110.00,  // String 5: A2
+    146.83,  // String 4: D3
+    196.00,  // String 3: G3
+    246.94,  // String 2: B3
+    329.63,  // String 1: E4 (High E)
   ];
 
-  /// Standard guitar string note names.
-  static const List<String> guitarStringNotes = ['E', 'A', 'D', 'G', 'B', 'E'];
+  /// Standard guitar string note names with octave.
+  static const List<String> guitarStringNotes = ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'];
+
+  /// Standard guitar string note names without octave (for simple display).
+  static const List<String> guitarStringNoteLetters = ['E', 'A', 'D', 'G', 'B', 'E'];
+
+  /// String display names (1-6, as labeled on guitar).
+  static const List<String> guitarStringNames = ['6', '5', '4', '3', '2', '1'];
 
   /// Minimum tempo value for metronome (BPM).
   static const int minBPM = 30;

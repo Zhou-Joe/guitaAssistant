@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:guitar_assistant/config/theme.dart';
 
-class TunerDisplay extends StatelessWidget {
+class TunerDisplay extends StatefulWidget {
   final double frequency;
   final String detectedNote;
   final double cents;
@@ -26,119 +26,162 @@ class TunerDisplay extends StatelessWidget {
   });
 
   @override
+  State<TunerDisplay> createState() => _TunerDisplayState();
+}
+
+class _TunerDisplayState extends State<TunerDisplay> {
+  @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.primary.withOpacity(0.1),
-              AppColors.secondary.withOpacity(0.1),
-            ],
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 16),
-            // 目标音符显示
-            if (selectedStringNote != null) ...[
-              Text(
-                '目标：$selectedStringNote',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade600,
-                ),
+    // Manual mode - user selected a specific string
+    final isManualMode = widget.selectedStringNote != null;
+
+    return Container(
+      color: AppColors.background,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Target note display (manual mode)
+          if (isManualMode) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.secondary.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.secondary, width: 1),
               ),
-              const SizedBox(height: 8),
-            ],
-            // 检测到的音符
-            Text(
-              isListening && detectedNote.isNotEmpty ? detectedNote : '--',
-              style: TextStyle(
-                fontSize: 64,
-                fontWeight: FontWeight.bold,
-                color: isInTune ? AppColors.success : AppColors.primary,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.music_note, size: 16, color: AppColors.secondary),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Target: ${widget.selectedStringNote}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondary,
+                    ),
+                  ),
+                ],
               ),
             ),
-            // 频率显示
-            if (isListening && frequency > 0) ...[
-              const SizedBox(height: 8),
-              Text(
-                '${frequency.toStringAsFixed(1)} Hz',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ],
-            const SizedBox(height: 16),
-            // 音高偏差指示器
-            _buildPitchDeviationIndicator(),
-            const SizedBox(height: 16),
-            // 状态提示
-            _buildStatusText(context),
-            // 动画环
-            if (isListening) ...[
-              const SizedBox(height: 16),
-              _buildAnimatedRing(),
-            ],
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
           ],
-        ),
+          // Detected note / target note in manual mode
+          Text(
+            widget.isListening && widget.frequency > 0
+                ? (isManualMode ? widget.selectedStringNote! : widget.detectedNote)
+                : '--',
+            style: TextStyle(
+              fontSize: 56,
+              fontWeight: FontWeight.bold,
+              color: widget.isInTune ? AppColors.cta : AppColors.textPrimary,
+            ),
+          ),
+          // Frequency display
+          if (widget.isListening && widget.frequency > 0)
+            Text(
+              '${widget.frequency.toStringAsFixed(1)} Hz',
+              style: const TextStyle(
+                fontSize: 16,
+                color: AppColors.textMuted,
+              ),
+            ),
+          const SizedBox(height: 12),
+          // Pitch deviation indicator
+          _buildPitchDeviationIndicator(isManualMode),
+          const SizedBox(height: 8),
+          // Status text
+          _buildStatusText(context),
+        ],
       ),
     );
   }
 
-  Widget _buildPitchDeviationIndicator() {
+  Widget _buildPitchDeviationIndicator(bool isManualMode) {
+    Color indicatorColor;
+    if (widget.cents.abs() <= 5) {
+      indicatorColor = AppColors.cta;
+    } else if (widget.cents.abs() <= 15) {
+      indicatorColor = AppColors.warning;
+    } else {
+      indicatorColor = AppColors.error;
+    }
+
+    // In manual mode, show the cents directly
+    // In auto mode, clamp to typical range
+    final displayCents = isManualMode ? widget.cents : widget.cents.clamp(-50.0, 50.0);
+
     return Container(
       width: 280,
-      height: 60,
+      height: 56,
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.grey.shade300, width: 2),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AppColors.surfaceElevated, width: 2),
       ),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // 中心线
+          // Center line (in tune position)
           Container(
-            width: 2,
-            height: 40,
-            color: Colors.grey.shade400,
-          ),
-          // 中心标记
-          const Center(
-            child: Text(
-              '0',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+            width: 3,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.cta,
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
-          // 刻度标记
-          Positioned.fill(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text('-50', style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
-                const SizedBox(width: 60),
-                Text('50', style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
-              ],
+          // Center mark
+          Container(
+            width: 14,
+            height: 14,
+            decoration: BoxDecoration(
+              color: AppColors.cta.withValues(alpha: 0.3),
+              shape: BoxShape.circle,
             ),
           ),
-          // 指针
+          // Direction labels
+          Positioned(
+            left: 16,
+            child: Icon(Icons.arrow_downward, size: 14, color: AppColors.textMuted),
+          ),
+          Positioned(
+            right: 16,
+            child: Icon(Icons.arrow_upward, size: 14, color: AppColors.textMuted),
+          ),
+          // Tick marks
+          const Positioned(
+            left: 40,
+            child: Text('-50', style: TextStyle(fontSize: 9, color: AppColors.textMuted)),
+          ),
+          const Positioned(
+            child: Text('0', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.cta)),
+          ),
+          const Positioned(
+            right: 40,
+            child: Text('+50', style: TextStyle(fontSize: 9, color: AppColors.textMuted)),
+          ),
+          // Pointer
           AnimatedContainer(
             duration: const Duration(milliseconds: 100),
+            curve: Curves.easeOut,
             child: Transform.translate(
-              offset: Offset((cents / 50).clamp(-1.0, 1.0) * 100, 0),
+              offset: Offset((displayCents / 50).clamp(-1.0, 1.0) * 110, 0),
               child: Container(
-                width: 4,
-                height: 50,
+                width: 8,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: isInTune ? AppColors.success : AppColors.error,
-                  borderRadius: BorderRadius.circular(2),
+                  color: indicatorColor,
+                  borderRadius: BorderRadius.circular(4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: indicatorColor.withValues(alpha: 0.5),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -152,62 +195,36 @@ class TunerDisplay extends StatelessWidget {
     String status;
     Color color;
 
-    if (errorMessage != null) {
-      status = errorMessage!;
+    if (widget.errorMessage != null) {
+      status = widget.errorMessage!;
       color = AppColors.error;
-    } else if (!isListening) {
-      status = '点击"开始调音"开始';
-      color = Colors.grey.shade600;
-    } else if (frequency <= 0) {
-      status = '正在聆听...';
-      color = AppColors.primary;
-    } else if (isInTune) {
-      status = '✓ 音准完美!';
-      color = AppColors.success;
-    } else if (cents < -30) {
-      status = '太松了 - 拧紧';
+    } else if (!widget.isListening) {
+      status = 'Tap Start to begin';
+      color = AppColors.textMuted;
+    } else if (widget.frequency <= 0) {
+      status = 'Listening...';
+      color = AppColors.secondary;
+    } else if (widget.isInTune) {
+      status = 'In Tune!';
+      color = AppColors.cta;
+    } else if (widget.cents < -15) {
+      status = 'Too flat - tighten string';
       color = AppColors.error;
-    } else if (cents > 30) {
-      status = '太紧了 - 放松';
+    } else if (widget.cents > 15) {
+      status = 'Too sharp - loosen string';
       color = AppColors.error;
     } else {
-      status = '接近了...';
+      status = 'Almost there...';
       color = AppColors.warning;
     }
 
     return Text(
       status,
       style: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
         color: color,
       ),
-    );
-  }
-
-  Widget _buildAnimatedRing() {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.8, end: 1.2),
-      duration: const Duration(milliseconds: 800),
-      curve: Curves.easeInOut,
-      builder: (context, value, child) {
-        return Container(
-          width: 120 * value,
-          height: 120 * value,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: isInTune ? AppColors.success : AppColors.primary,
-              width: 3,
-            ),
-          ),
-          child: Icon(
-            Icons.music_note,
-            size: 40 * value,
-            color: isInTune ? AppColors.success : AppColors.primary,
-          ),
-        );
-      },
     );
   }
 }

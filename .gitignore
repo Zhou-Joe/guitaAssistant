@@ -37,3 +37,10 @@ android/local.properties
 
 # macOS
 .DS_Store
+
+# Local agent tooling
+.claude/
+.zcode/
+
+# Flutter generated (untracked from history)
+.flutter-plugins-dependencies

@@ -43,7 +43,12 @@ final class MetronomeEngine {
     private(set) var tempoMode: TempoMode = .manual
     private(set) var soundStyle: SoundStyle = .classic
     private(set) var isPlaying = false
+    /// 当前正在响的拍(0 基,拍内位置)。UI 高亮用——与点击音严格同步。
     private(set) var currentBeat = 0
+    /// 自开始播放以来累计已响的拍数(跨小节)。按小节推进的 UI(如曲谱小节高亮)用。
+    private(set) var playedBeatTotal = 0
+    /// 下一拍要播放的拍位(引擎内部推进,UI 不读)。
+    private var nextBeat = 0
     private(set) var error: String?
     private(set) var hasBeenStarted = false   // 供悬浮窗判断是否常驻
 
@@ -95,6 +100,8 @@ final class MetronomeEngine {
 
         beatsAtCurrentBpm = 0
         currentBeat = 0
+        playedBeatTotal = 0
+        nextBeat = 0
         isPlaying = true
         hasBeenStarted = true
 
@@ -116,6 +123,8 @@ final class MetronomeEngine {
         beatTimer = nil
         isPlaying = false
         currentBeat = 0
+        playedBeatTotal = 0
+        nextBeat = 0
         beatsAtCurrentBpm = 0
         normalPlayer?.stop()
         accentPlayer?.stop()
@@ -137,6 +146,7 @@ final class MetronomeEngine {
     func setTimeSignature(_ sig: String) {
         timeSignature = sig
         currentBeat = 0
+        nextBeat = 0
     }
 
     func setSoundStyle(_ style: SoundStyle) {
@@ -161,7 +171,7 @@ final class MetronomeEngine {
 
     private func startBeatTimer(resetBeat: Bool = false) {
         beatTimer?.cancel()
-        if resetBeat { currentBeat = 0 }
+        if resetBeat { nextBeat = 0 }
         let timer = DispatchSource.makeTimerSource(queue: queue)
         let msPerBeat = max(1, Int(60000.0 / Double(bpm)))
         timer.schedule(deadline: .now(), repeating: .milliseconds(msPerBeat), leeway: .milliseconds(1))
@@ -179,16 +189,20 @@ final class MetronomeEngine {
         startBeatTimer(resetBeat: false)
     }
 
-    /// 每次 tick：播放点击 + 推进 beat + 处理速度模式。
+    /// 每次 tick：播放点击 + 更新"正在响的拍" + 处理速度模式。
     /// 音频播放可在任意线程；状态修改（@Observable）统一在主线程，确保 UI 正确刷新。
+    ///
+    /// 对齐约定：`currentBeat` 始终等于**刚触发点击音的那一拍**（而非提前推进到
+    /// 下一拍），保证 UI 高亮与听到的声音同步；下一拍位置由 `nextBeat` 内部维护。
     private func onTick() {
-        let isAccent = currentBeat == 0
-        playClick(accent: isAccent)
+        let played = nextBeat
+        playClick(accent: played == 0)
+        nextBeat = (nextBeat + 1) % max(1, beatsPerMeasure)
 
-        // 在主线程计算并提交状态变更（currentBeat 推进 + 速度模式）。
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            self.currentBeat = (self.currentBeat + 1) % max(1, self.beatsPerMeasure)
+            self.currentBeat = played
+            self.playedBeatTotal += 1
             self.handleTempoMode()
         }
     }

@@ -257,10 +257,13 @@ struct InteractiveTabView: View {
         .padding(.horizontal)
     }
 
-    /// 当前应该高亮的小节索引（按节拍器 BPM 推进，简化：每拍换一个小节）。
+    /// 当前应该高亮的小节索引。
+    /// 与节拍器严格对齐:每个节拍器小节(强拍起)推进一张卡片——
+    /// 累计已响拍数 ÷ 每小节拍数 = 当前小节序号。
     private var currentMeasureIndex: Int {
         guard !currentScore.measures.isEmpty else { return 0 }
-        return metronome.currentBeat % currentScore.measures.count
+        let beatsPerMeasure = max(1, metronome.beatsPerMeasure)
+        return (metronome.playedBeatTotal / beatsPerMeasure) % currentScore.measures.count
     }
 
     // MARK: - 模式2：和弦速查卡

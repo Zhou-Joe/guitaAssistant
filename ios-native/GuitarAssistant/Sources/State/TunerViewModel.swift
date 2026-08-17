@@ -1,6 +1,7 @@
 import Foundation
 import AVFoundation
 import SwiftUI
+import Accelerate
 
 /// 调音器视图模型（@Observable，替代 Flutter 的 `TunerProvider`）。
 ///
@@ -24,9 +25,11 @@ final class TunerViewModel {
     /// 手动选定的弦索引（nil = 自动模式）。
     var selectedStringIndex: Int? {
         didSet {
-            // 切换目标弦清空平滑历史——派发到 processingQueue 避免与后台 process() 竞态。
+            // 切换目标弦清空平滑历史与滞回状态——派发到 processingQueue 避免与后台 process() 竞态。
             processingQueue.async { [weak self] in
                 self?.smoother.reset()
+                self?.stickyNote.reset()
+                self?.stickyString.reset()
             }
         }
     }
@@ -40,6 +43,11 @@ final class TunerViewModel {
     private let smoother = FrequencySmoother()
     private let processingQueue = DispatchQueue(label: "com.guitarassistant.pitch",
                                                  qos: .userInteractive)
+    // 自动模式滞回状态(仅在 processingQueue 上访问)。
+    private var stickyNote = StickySelector(confirmFrames: 3)
+    private var stickyString = StickySelector(confirmFrames: 3)
+    /// RMS 门限(线性幅值,约 -45dBFS):低于此值的帧视为瞬态/衰减噪声,丢弃。
+    private let rmsGate: Float = pow(10, -45.0 / 20)
 
     // MARK: - 音频引擎
 
@@ -108,7 +116,11 @@ final class TunerViewModel {
             isEngineStarted = true
             isListening = true
             errorMessage = nil
-            smoother.reset()
+            processingQueue.async { [weak self] in
+                self?.smoother.reset()
+                self?.stickyNote.reset()
+                self?.stickyString.reset()
+            }
         } catch {
             // 启动失败时移除已安装的 tap，保持状态干净。
             inputNode.removeTap(onBus: 0)
@@ -129,7 +141,11 @@ final class TunerViewModel {
         cents = 0
         isInTune = false
         nearestStringIndex = -1
-        smoother.reset()
+        processingQueue.async { [weak self] in
+            self?.smoother.reset()
+            self?.stickyNote.reset()
+            self?.stickyString.reset()
+        }
     }
 
     // MARK: - 处理
@@ -140,6 +156,12 @@ final class TunerViewModel {
         // 拷贝到独立数组（buffer 会被复用）。
         let samples = Array(UnsafeBufferPointer(start: channelData, count: frameLength))
         guard samples.count >= AppConstants.tunerBufferSize else { return }
+
+        // RMS 能量门限：拨弦瞬态与尾音衰减期的低能量帧会输出幽灵频率，直接丢弃
+        // （保持上次显示，避免读数/音名跳变）。
+        let energy = vDSP.dot(samples, samples)
+        let rms = (energy / Float(samples.count)).squareRoot()
+        guard rms.isFinite, rms > rmsGate else { return }
 
         // 按实际采样率构造检测器（缓存，避免每帧重建）。
         let useSampleRate = sampleRate > 0 ? sampleRate : AppConstants.sampleRate
@@ -170,10 +192,23 @@ final class TunerViewModel {
                 displayNote = AppConstants.guitarStringNotes[target]
                 nearest = target
             } else {
-                let (note, noteCents) = detector.frequencyToNote(smoothed)
-                displayNote = note
-                displayCents = max(-50, min(50, noteCents))
-                nearest = detector.nearestStringIndex(for: smoothed)
+                // 自动模式:音名/弦选择走滞回,消除边界抖动导致的频繁跳变。
+                // - 音名:当前音 ±60 音分内保持;新音需连续 3 帧一致才切换。
+                // - 弦高亮:当前弦 ±120 音分内保持;新弦需连续 3 帧一致才切换。
+                let semitones = 12.0 * log2(smoothed / 440.0)
+                let rawNote = Int(semitones.rounded())
+                let noteHold = self.stickyNote.stable >= 0
+                    && abs((semitones - Double(self.stickyNote.stable)) * 100.0) <= 60
+                let noteIdx = self.stickyNote.update(rawNote, hold: noteHold)
+                let displayIdx = noteIdx >= 0 ? noteIdx : rawNote
+                displayNote = PitchDetector.noteName(forSemitoneIndex: displayIdx)
+                displayCents = max(-50, min(50, (semitones - Double(displayIdx)) * 100.0))
+
+                let rawString = detector.nearestStringIndex(for: smoothed)
+                let stringHold = self.stickyString.stable >= 0
+                    && abs(1200.0 * log2(smoothed / AppConstants.guitarStringFrequencies[self.stickyString.stable])) <= 120
+                let stringIdx = self.stickyString.update(rawString, hold: stringHold)
+                nearest = stringIdx >= 0 ? stringIdx : rawString
             }
             displayInTune = abs(displayCents) <= AppConstants.defaultTunerTolerance
 

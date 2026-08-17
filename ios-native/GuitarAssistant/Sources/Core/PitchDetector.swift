@@ -13,14 +13,17 @@ public struct PitchResult: Equatable {
     public let isInTune: Bool
     /// 最近弦索引（0=低音 E2 ... 5=高音 E4）。
     public let nearestStringIndex: Int
+    /// YIN 清晰度（d'(τ) 谷值，越低越可信；1 = 不可信）。
+    public let clarity: Double
 
     public init(frequency: Double?, noteName: String, cents: Double,
-                isInTune: Bool, nearestStringIndex: Int) {
+                isInTune: Bool, nearestStringIndex: Int, clarity: Double = 1) {
         self.frequency = frequency
         self.noteName = noteName
         self.cents = cents
         self.isInTune = isInTune
         self.nearestStringIndex = nearestStringIndex
+        self.clarity = clarity
     }
 }
 
@@ -88,6 +91,12 @@ public final class PitchDetector {
     /// - Parameter samples: Float32 单声道采样，长度应 >= bufferSize。
     /// - Returns: 检测到的频率；无法检测返回 nil。
     public func detectFrequency(samples: [Float]) -> Double? {
+        detectWithClarity(samples: samples)?.frequency
+    }
+
+    /// 带清晰度的检测：返回 (频率, clarity)。clarity = YIN d'(τ) 谷值，
+    /// 越低越可信（周期性强）；接近 1 表示不可信。
+    public func detectWithClarity(samples: [Float]) -> (frequency: Double, clarity: Double)? {
         let n = halfBufferSize
         guard samples.count >= bufferSize else { return nil }
         guard maxTau < n else { return nil }
@@ -113,17 +122,18 @@ public final class PitchDetector {
 
         let frequency = sampleRate / interpolatedTau
         guard frequency.isFinite, frequency > 0 else { return nil }
-        return frequency
+        return (frequency, min(1, max(0, cumulative[bestTau])))
     }
 
     /// 对一帧采样做完整检测（频率 + 音名/音分/准音/最近弦）。
     /// - Parameter targetStringIndex: 可选手动选定弦索引；非空时音分相对该弦计算。
     public func detect(samples: [Float], targetStringIndex: Int? = nil) -> PitchResult {
-        guard let frequency = detectFrequency(samples: samples),
-              frequency.isFinite, frequency > 0 else {
+        guard let detected = detectWithClarity(samples: samples),
+              detected.frequency.isFinite, detected.frequency > 0 else {
             return PitchResult(frequency: nil, noteName: "—", cents: 0,
                                isInTune: false, nearestStringIndex: -1)
         }
+        let frequency = detected.frequency
 
         let nearest = nearestStringIndex(for: frequency, override: targetStringIndex)
         let noteName: String
@@ -144,7 +154,8 @@ public final class PitchDetector {
 
         let isInTune = abs(cents) <= tolerance
         return PitchResult(frequency: frequency, noteName: noteName, cents: cents,
-                           isInTune: isInTune, nearestStringIndex: nearest)
+                           isInTune: isInTune, nearestStringIndex: nearest,
+                           clarity: detected.clarity)
     }
 
     // MARK: - YIN 步骤
@@ -201,7 +212,8 @@ public final class PitchDetector {
         }
 
         if bestTau == -1 {
-            // 未找到低于阈值的谷：取全局最小，但要求其置信度可接受（< 0.5）。
+            // 未找到低于阈值的谷：取全局最小，但要求其清晰度可接受（< 0.3）。
+            // （旧值 0.5 过宽松——尾音衰减期的噪声帧会从这里漏出幽灵频率。）
             var minVal = Double.infinity
             for t in minTau..<maxTau {
                 if cumulative[t] < minVal {
@@ -209,7 +221,7 @@ public final class PitchDetector {
                     bestTau = t
                 }
             }
-            if bestTau <= 0 || minVal > 0.5 {
+            if bestTau <= 0 || minVal > 0.3 {
                 return nil
             }
         }
@@ -237,9 +249,14 @@ public final class PitchDetector {
         let a4 = 440.0
         let semitones = 12.0 * log2(frequency / a4)
         let rounded = semitones.rounded()
-        let noteIndex = ((Int(rounded) + 9) % 12 + 12) % 12
         let cents = (semitones - rounded) * 100.0
-        return (AppConstants.noteNames[noteIndex], cents)
+        return (Self.noteName(forSemitoneIndex: Int(rounded)), cents)
+    }
+
+    /// 半音索引（相对 A4，可为负）→ 音名（如 "E"、"A#"）。
+    public static func noteName(forSemitoneIndex index: Int) -> String {
+        let noteIndex = ((index + 9) % 12 + 12) % 12
+        return AppConstants.noteNames[noteIndex]
     }
 
     /// 计算频率对应的最近弦索引。

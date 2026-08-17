@@ -63,10 +63,25 @@ public enum DigitClassifier {
                                     xStart: blob.width * 2 / 3, xEnd: blob.width)
         let midD = columnDensity(grid: grid, width: blob.width, height: blob.height,
                                   xStart: blob.width / 3, xEnd: blob.width * 2 / 3)
+        let purity = stemPurity(grid: grid, width: blob.width, height: blob.height)
+        let brD = regionDensity(grid: grid, width: blob.width, height: blob.height,
+                                x0: blob.width / 2, x1: blob.width,
+                                y0: blob.height * 2 / 3, y1: blob.height)
 
         if holes >= 2 {
             // 两个孔 → 8（吉他品位 8/18 较常见）。
             return Result(digit: 8, confidence: 0.7)
+        }
+
+        // "7":顶部横杠 + 斜杠左倾 → 顶部密、右下几乎无墨。
+        // (放在纯度规则之前:横杠与斜杠会使部分列产生两段,纯度不高。)
+        if holes == 0, topD > 0.42, brD < 0.10 {
+            return Result(digit: 7, confidence: 0.75)
+        }
+        // "1":单竖笔画(每列几乎只有一段连续黑)。带旗衬线的字体宽度可到
+        // 0.85,旧规则(ratio<0.55)会漏。
+        if holes == 0, purity >= 0.72, ratio < 0.9 {
+            return Result(digit: 1, confidence: 0.85)
         }
 
         if holes == 1 {
@@ -101,9 +116,14 @@ public enum DigitClassifier {
         if topD > 0.35 && rightD > leftD && midD < 0.3 {
             return Result(digit: 5, confidence: 0.6)
         }
+        // 2 vs 3：2 底部有贯穿横杠（左下象限有墨）；3 开口朝左（左下几乎无墨）。
+        let blD = regionDensity(grid: grid, width: blob.width, height: blob.height,
+                                x0: 0, x1: blob.width / 2,
+                                y0: blob.height * 2 / 3, y1: blob.height)
         // 3：两个向左的半圆，中间列密度高，右侧密度高。
         if midD > 0.35 && rightD > leftD {
-            return Result(digit: 3, confidence: 0.75)
+            if blD < 0.10 { return Result(digit: 3, confidence: 0.75) }
+            return Result(digit: 2, confidence: 0.65)
         }
         // 2：顶部弯+底部横，中间少，右上有笔画。
         if rightD > leftD || midD < 0.35 {
@@ -193,5 +213,41 @@ public enum DigitClassifier {
             }
         }
         return total > 0 ? Double(black) / Double(total) : 0
+    }
+
+    /// 每列"单段连续黑"的占比(衡量是否为单一竖笔画;"1"接近 1.0)。
+    private static func stemPurity(grid: [[Bool]], width: Int, height: Int) -> Double {
+        guard width > 0, height > 0 else { return 0 }
+        var cols = 0
+        var single = 0
+        for x in 0..<width {
+            var runs = 0
+            var inRun = false
+            for y in 0..<height {
+                if grid[y][x] {
+                    if !inRun { runs += 1; inRun = true }
+                } else {
+                    inRun = false
+                }
+            }
+            if runs > 0 {
+                cols += 1
+                if runs == 1 { single += 1 }
+            }
+        }
+        return cols > 0 ? Double(single) / Double(cols) : 0
+    }
+
+    /// 任意矩形区域的黑像素占比(y 向下,越界自动裁剪)。
+    private static func regionDensity(grid: [[Bool]], width: Int, height: Int,
+                                      x0: Int, x1: Int, y0: Int, y1: Int) -> Double {
+        let xs = max(0, x0)..<min(width, max(0, x1))
+        let ys = max(0, y0)..<min(height, max(0, y1))
+        guard !xs.isEmpty, !ys.isEmpty else { return 0 }
+        var black = 0
+        for y in ys {
+            for x in xs where grid[y][x] { black += 1 }
+        }
+        return Double(black) / Double(xs.count * ys.count)
     }
 }

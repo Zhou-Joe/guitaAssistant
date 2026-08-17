@@ -5,16 +5,19 @@ import CoreImage
 import CoreImage.CIFilterBuiltins
 import Accelerate
 
-/// 二期：本地六线谱 CV 流水线。
+/// 本地六线谱 CV 流水线(分辨率无关版)。
 ///
-/// 流程：Core Image 预处理（灰度+对比+Canny）→ 水平投影找 6 条弦线 →
-/// Vision OCR 定位数字 → 数字归位到弦 → 小节切分 → 组装 TabScore。
+/// 流程:
+/// 1. 方向归一化(应用 EXIF orientation)+ 等比降采样(最长边 ≤1600)
+/// 2. 灰度 + 对比度增强 + Otsu 自适应二值化
+/// 3. 每行最长水平黑行程 → 候选线带 → 等差拟合(RANSAC)得到六线谱系统(支持多行谱)
+/// 4. 按垂直行程判据擦除弦线(只擦"纯线"像素,不破坏压在弦线上的数字)
+/// 5. 连通域定位数字块(尺寸阈值以弦线间距为单位,与分辨率无关)
+/// 6. DigitClassifier 分类 → 归弦 → 两位数合并(10-24 品)→ 小节切分
 ///
-/// 弦线检测采用**水平像素投影法**（逐行求和黑像素 + vDSP 峰检测），
-/// 而非已废弃的 VNDetectLineSegmentsRequest —— 对规整六线谱更可靠。
+/// 纯算法部分在 `TabVisionAlgorithms`(无 UIKit 依赖,可单元测试)。
 ///
-/// 注意：本类依赖 UIKit/Vision/CoreImage，无法在 SwiftPM 单元测试中直接跑；
-/// 纯算法部分（投影峰检测、数字归位）抽取到静态方法，用合成数据测试。
+/// 注意:本类依赖 UIKit/Vision/CoreImage,无法在 SwiftPM 单元测试中直接跑。
 final class TABComputerVision {
 
     struct ChordAIConfig {
@@ -23,71 +26,132 @@ final class TABComputerVision {
         let model: String
     }
 
-    /// 最近一次识别的诊断信息（供 UI 调试用）。
+    /// CV 识别结果:曲谱 + 真实置信度(由弦线拟合分与数字分类分综合)。
+    struct CVResult {
+        let score: TabScore
+        let confidence: Double
+    }
+
+    /// 最近一次识别的诊断信息(供 UI 调试用)。
     static var diagnostics: String = ""
 
     init() {}
 
-    /// 累加诊断信息（用 print + 存储，确保日志和 UI 都能看到）。
+    /// 累加诊断信息(用 print + 存储,确保日志和 UI 都能看到)。
     private func diag(_ msg: String) {
         Self.diagnostics += msg + "\n"
         print("🌐 [CV] " + msg)
     }
 
+    /// 工作分辨率上限:所有像素阈值以此为前提,超清图先降采样。
+    private static let maxWorkingDimension: CGFloat = 1600
+
     /// 识别曲谱图片。
     /// - Parameters:
-    ///   - image: 曲谱原图。
-    ///   - chordConfig: 和弦识别用的 AI 配置（nil 时跳过和弦，仅识别六线谱数字）。
-    func recognize(image: UIImage, chordConfig: ChordAIConfig?) async throws -> TabScore {
+    ///   - image: 曲谱原图(任意方向/分辨率)。
+    ///   - chordConfig: 和弦识别用的 AI 配置(nil 时跳过和弦,仅识别六线谱数字)。
+    func recognize(image: UIImage, chordConfig: ChordAIConfig?) async throws -> CVResult {
         Self.diagnostics = ""   // 重置诊断
-        diag("开始识别，原图尺寸=\(Int(image.size.width))x\(Int(image.size.height))")
-        // 1. 预处理：灰度 + 高对比 + Canny 边缘（iOS 17+）。
-        guard let processed = preprocess(image) else {
+        diag("开始识别,原图尺寸=\(Int(image.size.width))x\(Int(image.size.height)) orientation=\(image.imageOrientation.rawValue)")
+
+        // 1. 方向归一化 + 降采样(CGImage 不带 orientation,必须重绘)。
+        guard let normalized = Self.uprightAndScaled(image, maxDimension: Self.maxWorkingDimension) else {
+            diag("❌ 方向归一化失败")
+            throw RecognitionError.imageEncodingFailed
+        }
+        guard let cg = normalized.cgImage else {
+            diag("❌ 归一化后无 cgImage")
+            throw RecognitionError.imageEncodingFailed
+        }
+        let W = cg.width, H = cg.height
+        diag("✅ 归一化完成 \(W)x\(H)")
+
+        // 2. 预处理:灰度 + 高对比。
+        guard let processed = preprocess(normalized) else {
             diag("❌ 预处理失败")
             throw RecognitionError.imageEncodingFailed
         }
-        diag("✅ 预处理完成")
 
-        // 2. 水平投影找 6 条弦线 y 坐标。
-        let projection = horizontalBlackProjection(of: processed)
-        let pixelHeight = processed.cgImage?.height ?? Int(processed.size.height)
-        let stringYs = Self.detectStringLines(from: projection,
-                                              imageHeight: pixelHeight)
-        diag("投影行数=\(projection.count) 弦线检测=\(stringYs) 投影峰值=\(projection.max() ?? 0) 均值=\(projection.reduce(0,+)/Double(max(1,projection.count)))")
+        // 3. 灰度像素缓冲 + Otsu 二值化。
+        guard let processedCG = processed.cgImage,
+              let gray = TabVisionAlgorithms.grayscaleBuffer(of: processedCG) else {
+            diag("❌ 灰度缓冲失败")
+            throw RecognitionError.imageEncodingFailed
+        }
+        let otsu = TabVisionAlgorithms.otsuThreshold(gray)
+        let threshold = (30...220).contains(otsu) ? otsu : 128
+        let bin: [UInt8] = gray.map { $0 < UInt8(threshold) ? 1 : 0 }
+        diag("二值化阈值=\(threshold)(Otsu)")
 
-        // 3. 若找不到 6 条弦线，降级：返回空 score（调用方可回退 AI）。
-        guard stringYs.count >= 4 else {
-            diag("弦线不足4条(\(stringYs.count))，返回空 score")
-            return TabScore(measures: [])
+        // 4. 每行最长水平黑行程 → 候选线带 → 六线谱系统。
+        let maxRun = TabVisionAlgorithms.rowMaxRuns(bin, width: W, height: H)
+        let bands = TabVisionAlgorithms.extractLineBands(maxRunPerRow: maxRun, imageWidth: Double(W))
+        let systems = TabVisionAlgorithms.fitStringSystems(bands: bands, imageHeight: Double(H))
+        diag("线带=\(bands.map { String(format: "%.0f(t%.0f,s%.0f)", $0.center, $0.thickness, $0.strength) })")
+        diag("系统=\(systems.count) 个: " + systems.map { s in
+            String(format: "[y=%@ d=%.1f inlier=%.2f cv=%.2f]",
+                   s.lineYs.map { String(format: "%.0f", $0) }.joined(separator: ","),
+                   s.spacing, s.inlierRatio, s.spacingCV)
+        }.joined(separator: " "))
+
+        guard !systems.isEmpty else {
+            diag("未找到六线谱系统,返回空 score")
+            return CVResult(score: TabScore(measures: []), confidence: 0)
         }
 
-        // 4. 数字识别：擦除弦线 → 连通域定位数字块 → 形状特征分类。
-        //    （放弃通用 OCR：实测对孤立小数字识别率极低，改用 Audiveris 推荐的
-        //     连通域 + 形状分类方案。）
-        let digitBoxes = recognizeDigitsViaConnectedComponents(image: processed, stringYs: stringYs)
-        diag("连通域+形状分类识别到数字 \(digitBoxes.count) 个: \(digitBoxes.map { "(\($0.digit)@\($0.cx),$($0.cy))" })")
+        // 5. 擦弦线(垂直行程判据:只擦纯线像素,保留压线的数字笔画)。
+        let cleaned = TabVisionAlgorithms.eraseStringLines(bin, width: W, height: H, systems: systems)
 
-        // 5. 数字归位到弦 + 按列聚类成小节。
-        let score = Self.assembleScore(stringYs: stringYs,
-                                        digitBoxes: digitBoxes,
-                                        imageWidth: processed.size.width)
-        diag("组装完成: \(score.measures.count) 个小节")
+        // 6. 连通域定位数字块 + 形状分类。
+        let digits = TabVisionAlgorithms.detectDigitBoxes(cleaned, width: W, height: H, systems: systems)
+        diag("数字 \(digits.count) 个: \(digits.map { "(\($0.digit)@x\($0.cx),y\($0.cy))" })")
 
-        // 6. 和弦识别（若配置了 AI）。
+        // 7. 组装 + 置信度。
+        let score = TabVisionAlgorithms.assembleScore(systems: systems, digits: digits,
+                                                      imageWidth: Double(W))
+        let confidence = TabVisionAlgorithms.confidence(systems: systems, digits: digits)
+        diag("组装完成: \(score.measures.count) 个小节, 置信度=\(String(format: "%.2f", confidence))")
+
+        // 8. 和弦识别(若配置了 AI,且 CV 已识别出内容;空结果时跳过,由上层回退 AI)。
         var finalScore = score
-        if let chordConfig {
+        if let chordConfig, !finalScore.measures.isEmpty {
             let chords = try? await recognizeChords(image: image, config: chordConfig)
-            if let chords, !chords.isEmpty, !finalScore.measures.isEmpty {
-                // 把识别的和弦名分配到各小节（按数量对应）。
-                for i in 0..<min(chords.count, finalScore.measures.count) {
-                    finalScore.measures[i].chords = [chords[i]]
+            if let chords, !chords.isEmpty {
+                // 按比例把和弦名分配到各小节(chords 数与 measures 数不一定相等)。
+                let count = finalScore.measures.count
+                for i in finalScore.measures.indices {
+                    let idx = min(Int(Double(i) * Double(chords.count) / Double(count)),
+                                  chords.count - 1)
+                    finalScore.measures[i].chords = [chords[idx]]
                 }
             }
             diag("和弦识别: \(chords ?? [])")
+        } else if chordConfig != nil {
+            diag("CV 无小节,跳过和弦识别(交由上层回退)")
         } else {
-            diag("无 AI 配置，跳过和弦识别（仅六线谱数字）")
+            diag("无 AI 配置,跳过和弦识别(仅六线谱数字)")
         }
-        return finalScore
+        return CVResult(score: finalScore, confidence: confidence)
+    }
+
+    // MARK: - 归一化
+
+    /// 重绘为 upright(应用 EXIF orientation)并等比降采样到最长边 ≤ maxDimension。
+    /// 输出 scale=1、orientation=.up,后续所有像素处理不再关心方向。
+    static func uprightAndScaled(_ image: UIImage, maxDimension: CGFloat) -> UIImage? {
+        let longest = max(image.size.width, image.size.height)
+        guard longest > 0 else { return nil }
+        let scale = min(1, maxDimension / longest)
+        let newSize = CGSize(width: floor(image.size.width * scale),
+                             height: floor(image.size.height * scale))
+        guard newSize.width > 10, newSize.height > 10 else { return nil }
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        format.opaque = true
+        let renderer = UIGraphicsImageRenderer(size: newSize, format: format)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
     }
 
     // MARK: - 预处理
@@ -95,9 +159,7 @@ final class TABComputerVision {
     private func preprocess(_ image: UIImage) -> UIImage? {
         guard let cg = image.cgImage else { return nil }
         let ci = CIImage(cgImage: cg)
-        // 灰度 + 高对比（用于投影找弦线）。
-        // 注意：不用 CICannyEdgeDetector——实测它会把六线谱整图变成全黑，
-        // 破坏水平投影。弦线本身是黑色的，灰度+高对比后的投影就能清晰找到峰。
+        // 灰度 + 高对比。不用 CICannyEdgeDetector(会把谱面变全黑,破坏投影)。
         let processed = ci
             .applyingFilter("CIPhotoEffectMono")
             .applyingFilter("CIColorControls", parameters: [
@@ -111,218 +173,7 @@ final class TABComputerVision {
         return UIImage(cgImage: outputCG)
     }
 
-    // MARK: - 水平投影（纯算法，可测试）
-
-    /// 计算每行黑像素数。弦线所在行会有大量黑像素，形成投影曲线的峰。
-    /// 返回长度 = imageHeight 的数组，每个元素是该行的黑像素计数。
-    private func horizontalBlackProjection(of image: UIImage) -> [Double] {
-        guard let cg = image.cgImage else { return [] }
-        let width = cg.width
-        let height = cg.height
-        let bytesPerRow = width
-        var pixelData = [UInt8](repeating: 0, count: width * height)
-        let colorSpace = CGColorSpaceCreateDeviceGray()
-        guard let context = CGContext(data: &pixelData,
-                                       width: width, height: height,
-                                       bitsPerComponent: 8, bytesPerRow: bytesPerRow,
-                                       space: colorSpace,
-                                       bitmapInfo: CGImageAlphaInfo.none.rawValue) else {
-            return []
-        }
-        context.draw(cg, in: CGRect(x: 0, y: 0, width: width, height: height))
-
-        // 逐行求和黑像素（<128 视为黑）。
-        var projection = [Double](repeating: 0, count: height)
-        for y in 0..<height {
-            var sum: Double = 0
-            let rowStart = y * width
-            for x in 0..<width {
-                if pixelData[rowStart + x] < 128 { sum += 1 }
-            }
-            projection[y] = sum
-        }
-        return projection
-    }
-
-    /// 从水平投影曲线检测弦线 y 坐标（纯算法，可单元测试）。
-    /// 投影曲线的 6 个峰对应 6 条弦线。
-    static func detectStringLines(from projection: [Double], imageHeight: Int) -> [CGFloat] {
-        guard projection.count > 10 else { return [] }
-        // 求峰值（局部极大且显著高于均值）。
-        let mean = projection.reduce(0, +) / Double(projection.count)
-        let threshold = mean * 1.8   // 峰值需显著高于均值
-        var peaks: [(y: Int, value: Double)] = []
-        let win = 5
-        for i in win..<(projection.count - win) {
-            guard projection[i] > threshold else { continue }
-            var isPeak = true
-            for j in (i - win)...(i + win) where j != i {
-                if projection[j] > projection[i] { isPeak = false; break }
-            }
-            if isPeak { peaks.append((i, projection[i])) }
-        }
-        // 合并相邻峰（同一条线可能产生多个紧邻峰）。
-        var merged: [(y: Int, value: Double)] = []
-        var lastY = -100
-        for p in peaks {
-            if p.y - lastY > 8 {   // 间距大于阈值视为新线
-                merged.append(p)
-            } else if p.value > (merged.last?.value ?? 0) {
-                merged[merged.count - 1] = p
-            }
-            lastY = p.y
-        }
-        // 从强度最高的峰开始，贪心挑选"间距接近"的 6 条，
-        // 排除孤立的误判（如和弦名文字行——它和其它弦线间距异常）。
-        let sortedByValue = merged.sorted { $0.value > $1.value }
-        var selected: [(y: Int, value: Double)] = []
-        for cand in sortedByValue {
-            if selected.count >= 6 { break }
-            // 与已选中的最近间距应在一个合理范围（弦线间距相对均匀）。
-            let valid = selected.allSatisfy { existing in
-                let gap = abs(cand.y - existing.y)
-                return gap >= 15   // 至少 15px 间距
-            }
-            if valid { selected.append(cand) }
-        }
-        // 按 y 升序（图像顶部=高音E）。
-        return selected.sorted { $0.y < $1.y }.map { CGFloat($0.y) }
-    }
-
-    // MARK: - 数字识别（连通域 + 形状分类）
-
-    /// 通过连通域分析 + 形状特征分类识别数字。
-    /// 流程：取二值图 → 擦除弦线（断开数字与线的连接）→ 连通域定位数字块 → DigitClassifier 分类。
-    private func recognizeDigitsViaConnectedComponents(
-        image: UIImage, stringYs: [CGFloat]
-    ) -> [(digit: Int, cx: CGFloat, cy: CGFloat)] {
-        guard let cg = image.cgImage else { return [] }
-        let W = cg.width, H = cg.height
-
-        // 读灰度像素。
-        var px = [UInt8](repeating: 0, count: W * H)
-        guard let gctx = CGContext(data: &px, width: W, height: H,
-                                    bitsPerComponent: 8, bytesPerRow: W,
-                                    space: CGColorSpaceCreateDeviceGray(),
-                                    bitmapInfo: CGImageAlphaInfo.none.rawValue) else { return [] }
-        gctx.draw(cg, in: CGRect(x: 0, y: 0, width: W, height: H))
-
-        // 二值化。
-        var bin = [UInt8](repeating: 0, count: W * H)
-        for i in 0..<(W * H) { bin[i] = px[i] < 100 ? 1 : 0 }
-        func idx(_ x: Int, _ y: Int) -> Int { return y * W + x }
-
-        // 擦除弦线（每条弦线 y 附近 ±2 行置白），断开数字与线的像素连接。
-        for sy in stringYs {
-            let yi = Int(sy)
-            for dy in -2...2 {
-                let y = yi + dy
-                guard y >= 0 && y < H else { continue }
-                for x in 0..<W { bin[idx(x, y)] = 0 }
-            }
-        }
-
-        // 弦线区域的 y 范围（数字只出现在这里）。
-        let yMin = max(0, Int(stringYs.first ?? 0) - 15)
-        let yMax = min(H, Int(stringYs.last ?? CGFloat(H)) + 15)
-
-        // 连通域分析（flood fill 4 邻域）。
-        var visited = [Bool](repeating: false, count: W * H)
-        var digitBoxes: [(digit: Int, cx: CGFloat, cy: CGFloat)] = []
-        for y in yMin..<yMax {
-            for x in 0..<W {
-                let i = idx(x, y)
-                guard bin[i] == 1, !visited[i] else { continue }
-                // flood fill 找连通块。
-                var stack = [(x, y)]
-                var mnX = x, mxX = x, mnY = y, mxY = y
-                var blobPixels: [(Int, Int)] = []
-                while let (cx, cy) = stack.popLast() {
-                    if cx < 0 || cx >= W || cy < 0 || cy >= H { continue }
-                    let ci = idx(cx, cy)
-                    if visited[ci] || bin[ci] == 0 { continue }
-                    visited[ci] = true
-                    blobPixels.append((cx, cy))
-                    mnX = min(mnX, cx); mxX = max(mxX, cx)
-                    mnY = min(mnY, cy); mxY = max(mxY, cy)
-                    stack.append((cx + 1, cy)); stack.append((cx - 1, cy))
-                    stack.append((cx, cy + 1)); stack.append((cx, cy - 1))
-                }
-                let bw = mxX - mnX + 1, bh = mxY - mnY + 1
-                let area = blobPixels.count
-                // 数字块尺寸过滤（排除噪声和弦线残余）。
-                guard bw >= 3, bw <= 25, bh >= 4, bh <= 20, area >= 6, area <= 300 else { continue }
-                // 用 DigitClassifier 分类。
-                let relPixels = blobPixels.map { ($0.0 - mnX, $0.1 - mnY) }
-                let blob = DigitClassifier.Blob(width: bw, height: bh, pixels: relPixels)
-                let result = DigitClassifier.classify(blob)
-                let centerX = CGFloat(mnX + mxX) / 2
-                let centerY = CGFloat(mnY + mxY) / 2
-                digitBoxes.append((result.digit, centerX, centerY))
-            }
-        }
-        return digitBoxes
-    }
-
-    // MARK: - 组装曲谱（纯算法，可测试）
-
-    /// 把弦线 y 坐标 + 数字框（digit,中心x,中心y）组装成 TabScore。
-    /// 数字按 y 归位到最近弦，按 x 聚类成小节。
-    static func assembleScore(stringYs: [CGFloat],
-                               digitBoxes: [(digit: Int, cx: CGFloat, cy: CGFloat)],
-                               imageWidth: CGFloat) -> TabScore {
-        guard !stringYs.isEmpty else { return TabScore(measures: []) }
-
-        // 1. 每个数字归位到弦（最近弦线，弦索引 0=高音E=最顶部）。
-        // stringYs 已按升序（顶部到顶部=高音E到低音E）。
-        var placed: [(stringIdx: Int, digit: Int, x: CGFloat)] = []
-        for box in digitBoxes {
-            // 找最近的弦线 y。
-            var bestIdx = 0
-            var bestDist = CGFloat.infinity
-            for (i, sy) in stringYs.enumerated() {
-                let d = abs(box.cy - sy)
-                if d < bestDist { bestDist = d; bestIdx = i }
-            }
-            placed.append((bestIdx, box.digit, box.cx))
-        }
-
-        // 2. 按 x 聚类成小节。用相邻间距的中位数 * 3 作为切分阈值
-        //    （异常大的间距视为小节边界）。
-        let sorted = placed.sorted { $0.x < $1.x }
-        var gaps: [CGFloat] = []
-        for i in 1..<sorted.count { gaps.append(sorted[i].x - sorted[i-1].x) }
-        let medianGap = gaps.isEmpty ? imageWidth / 4 : gaps.sorted()[gaps.count / 2]
-        // 阈值取"中位间距的3倍"与"图宽15%"的较小者。
-        let splitThreshold = min(medianGap * 3, imageWidth * 0.15)
-        var measures: [[(stringIdx: Int, digit: Int, x: CGFloat)]] = []
-        var currentMeasure: [(stringIdx: Int, digit: Int, x: CGFloat)] = []
-        var lastX: CGFloat = -1
-        for item in sorted {
-            if lastX >= 0 && item.x - lastX > splitThreshold && !currentMeasure.isEmpty {
-                measures.append(currentMeasure)
-                currentMeasure = []
-            }
-            currentMeasure.append(item)
-            lastX = item.x
-        }
-        if !currentMeasure.isEmpty { measures.append(currentMeasure) }
-
-        // 3. 每个 measure 组装 6 行。
-        let tabMeasures = measures.map { items -> TabMeasure in
-            var strings: [[FretNote]] = Array(repeating: [], count: 6)
-            for it in items {
-                let note = FretNote(fret: it.digit)
-                if it.stringIdx < 6 {
-                    strings[it.stringIdx].append(note)
-                }
-            }
-            return TabMeasure(chords: [], strings: strings)
-        }
-        return TabScore(measures: tabMeasures)
-    }
-
-    // MARK: - 和弦识别（走 AI，可选）
+    // MARK: - 和弦识别(走 AI,可选)
 
     private func recognizeChords(image: UIImage, config: ChordAIConfig) async throws -> [String] {
         guard let dataURI = ImageEncoder.jpegDataURI(image) else { return [] }
@@ -333,7 +184,6 @@ final class TABComputerVision {
         """
         let raw = try await service.recognizeTab(endpoint: config.endpoint, apiKey: config.apiKey,
                                                   model: config.model, imageDataURI: dataURI, prompt: prompt)
-        // 解析 JSON 数组。
         if let data = raw.data(using: .utf8),
            let arr = try? JSONSerialization.jsonObject(with: data) as? [String] {
             return arr

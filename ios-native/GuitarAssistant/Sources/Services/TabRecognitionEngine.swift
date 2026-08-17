@@ -4,8 +4,9 @@ import UIKit
 /// 曲谱识别引擎。编排一期（AI 整体识别）与二期（本地 CV + 混合）链路。
 ///
 /// - `.ai`：图片 base64 → 多模态 AI 一次返回完整 TabScore JSON。
-/// - `.cv`：本地 CV 流水线（二期 TABComputerVision）。
-/// - `.hybrid`（默认）：和弦走 AI，六线谱数字走 CV（准确率最优）。
+/// - `.cv`：本地 CV 流水线（二期 TABComputerVision），置信度由 CV 实测得出。
+/// - `.hybrid`（默认）：和弦走 AI，六线谱数字走 CV；CV 结果为空或低置信时
+///   自动回退 AI 整图识别，保证总有可用结果。
 final class TabRecognitionEngine {
 
     /// AI 配置（从 SwiftData + Keychain 取出后传入）。
@@ -44,8 +45,8 @@ final class TabRecognitionEngine {
             return try await recognizeWithAI(image: image, config: aiConfig)
         case .cv:
             // 纯 CV（无需 AI）。
-            let score = try await cv.recognize(image: image, chordConfig: nil)
-            return Result(score: score, method: .cv, confidence: 0.7)
+            let r = try await cv.recognize(image: image, chordConfig: nil)
+            return Result(score: r.score, method: .cv, confidence: r.confidence)
         case .hybrid:
             return try await recognizeHybrid(image: image, aiConfig: aiConfig)
         }
@@ -70,17 +71,32 @@ final class TabRecognitionEngine {
 
     // MARK: - 二期：混合识别
 
-    /// 和弦走 AI，六线谱数字走 CV。
+    /// 和弦走 AI，六线谱数字走 CV；CV 空结果/低置信时回退 AI 整图识别。
     func recognizeHybrid(image: UIImage, aiConfig: AIConfig?) async throws -> Result {
         // CV 部分：识别六线谱数字。AI 部分：识别和弦名。
         // 把 AIConfig 转成 CV 需要的 ChordAIConfig；nil 时跳过和弦。
         let chordConfig = aiConfig.map {
             TABComputerVision.ChordAIConfig(endpoint: $0.endpoint, apiKey: $0.apiKey, model: $0.model)
         }
-        let score = try await cv.recognize(image: image, chordConfig: chordConfig)
-        let method: RecognitionMethod = (aiConfig != nil) ? .hybrid : .cv
-        let confidence = aiConfig != nil ? 0.85 : 0.7
-        return Result(score: score, method: method, confidence: confidence)
+        let cvResult = try await cv.recognize(image: image, chordConfig: chordConfig)
+        let noteCount = cvResult.score.measures.reduce(0) {
+            $0 + $1.strings.reduce(0) { $0 + $1.count }
+        }
+        // CV 可用：识别出小节且置信度达标 → 直接采用（hybrid = CV 数字 + AI 和弦）。
+        if !cvResult.score.measures.isEmpty, noteCount >= 1, cvResult.confidence >= 0.35 {
+            let method: RecognitionMethod = (chordConfig != nil) ? .hybrid : .cv
+            return Result(score: cvResult.score, method: method, confidence: cvResult.confidence)
+        }
+        // 回退：AI 整图识别（和弦 + 数字一次完成）。
+        if let aiConfig {
+            if let ai = try? await recognizeWithAI(image: image, config: aiConfig),
+               !ai.score.measures.isEmpty {
+                print("🌐 [Engine] CV 结果不可用（notes=\(noteCount) conf=\(cvResult.confidence)），已回退 AI 整图识别")
+                return ai
+            }
+        }
+        // AI 也不可用/失败：原样返回 CV 结果（可能为空，UI 显示诊断信息）。
+        return Result(score: cvResult.score, method: .cv, confidence: cvResult.confidence)
     }
 
     // MARK: - Prompt 设计

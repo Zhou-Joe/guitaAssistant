@@ -110,10 +110,59 @@ final class RecordingService: NSObject, AVCaptureFileOutputRecordingDelegate {
         if session.canAddOutput(output) { session.addOutput(output) }
         session.commitConfiguration()
 
+        applyPortraitOrientation()
         session.startRunning()
         videoSession = session
         movieOutput = output
         return session
+    }
+
+    // MARK: - 摄像头切换
+
+    /// 当前使用的摄像头位置。
+    private(set) var cameraPosition: AVCaptureDevice.Position = .back
+
+    /// 是否有前置摄像头(决定 UI 是否显示切换按钮)。
+    static func hasFrontCamera() -> Bool {
+        AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) != nil
+    }
+
+    /// 切换前置/后置摄像头:重配视频输入,音频输入保持。
+    /// 预览层绑定同一 session,切换后自动刷新。
+    func switchCamera() throws -> AVCaptureDevice.Position {
+        guard let session = videoSession else {
+            throw NSError(domain: "Recording", code: 2,
+                          userInfo: [NSLocalizedDescriptionKey: "视频会话未就绪"])
+        }
+        let newPosition: AVCaptureDevice.Position = cameraPosition == .back ? .front : .back
+        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: newPosition),
+              let input = try? AVCaptureDeviceInput(device: device) else {
+            throw NSError(domain: "Recording", code: 3,
+                          userInfo: [NSLocalizedDescriptionKey: "摄像头不可用"])
+        }
+        session.beginConfiguration()
+        // 移除现有视频输入(保留音频)。
+        for existing in session.inputs {
+            if let deviceInput = existing as? AVCaptureDeviceInput,
+               deviceInput.device.hasMediaType(.video) {
+                session.removeInput(existing)
+            }
+        }
+        if session.canAddInput(input) {
+            session.addInput(input)
+        }
+        session.commitConfiguration()
+        cameraPosition = newPosition
+        // 输入变化后连接重建,重新应用竖屏方向。
+        applyPortraitOrientation()
+        return newPosition
+    }
+
+    /// 录制连接设为竖屏方向(app 锁定竖屏,默认 landscape 会把视频录成横的)。
+    private func applyPortraitOrientation() {
+        guard let connection = movieOutput?.connection(with: .video),
+              connection.isVideoOrientationSupported else { return }
+        connection.videoOrientation = .portrait
     }
 
     /// 停止视频会话（离开视频模式时调用，释放相机）。
@@ -192,6 +241,8 @@ final class RecordingViewModel {
 
     private(set) var durationSeconds: Int = 0
     private(set) var mode: RecordingMode = .audio
+    /// 当前摄像头位置(视频模式)。
+    private(set) var cameraPosition: AVCaptureDevice.Position = .back
     private(set) var error: String?
     private(set) var audioLevel: Float = 0
 
@@ -231,6 +282,26 @@ final class RecordingViewModel {
     /// 离开视频模式时释放相机。
     func teardownVideo() {
         service.teardownVideoSession()
+        cameraPosition = .back
+    }
+
+    /// 能否切换摄像头:视频模式、未在录制、设备有前置摄像头。
+    var canSwitchCamera: Bool {
+        mode == .video && phase == .idle && RecordingService.hasFrontCamera()
+    }
+
+    /// 切换前置/后置摄像头(仅空闲时可切,避免录制中途换输入产生坏文件)。
+    func switchCamera() {
+        guard canSwitchCamera, let session = service.videoSession, session.isRunning else {
+            // 会话未预热完成时忽略(预热完成后按钮才可用,此处兜底)。
+            if canSwitchCamera { error = NSLocalizedString("camera_unavailable", comment: "") }
+            return
+        }
+        do {
+            cameraPosition = try service.switchCamera()
+        } catch {
+            self.error = error.localizedDescription
+        }
     }
 
     deinit {

@@ -118,18 +118,33 @@ struct RecordingView: View {
                 ProgressView().tint(AppColors.cta)
             }
             VStack {
-                if viewModel.isRecording {
-                    // 录制时长 + 红点。
-                    HStack(spacing: 6) {
-                        Circle().fill(AppColors.error).frame(width: 8, height: 8)
-                        Text(viewModel.formattedDuration)
-                            .font(.headline.monospacedDigit())
-                            .foregroundStyle(.white)
+                HStack(alignment: .top) {
+                    if viewModel.isRecording {
+                        // 录制时长 + 红点。
+                        HStack(spacing: 6) {
+                            Circle().fill(AppColors.error).frame(width: 8, height: 8)
+                            Text(viewModel.formattedDuration)
+                                .font(.headline.monospacedDigit())
+                                .foregroundStyle(.white)
+                        }
+                        .padding(.horizontal, 12).padding(.vertical, 6)
+                        .background(.black.opacity(0.4), in: Capsule())
                     }
-                    .padding(.horizontal, 12).padding(.vertical, 6)
-                    .background(.black.opacity(0.4), in: Capsule())
-                    .padding(.top, 12)
+                    Spacer()
+                    // 前后摄像头切换(仅视频模式空闲时)。
+                    if viewModel.canSwitchCamera {
+                        Button {
+                            viewModel.switchCamera()
+                        } label: {
+                            Image(systemName: "arrow.triangle.2.circlepath.camera")
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .frame(width: 36, height: 36)
+                                .background(.black.opacity(0.45), in: Circle())
+                        }
+                    }
                 }
+                .padding(12)
                 Spacer()
             }
         }
@@ -139,33 +154,51 @@ struct RecordingView: View {
     }
 
     /// 控制条：录制中/暂停时显示"停止保存"按钮 + 主按钮；空闲时只显示主按钮。
+    /// 两个按钮多重区分：主按钮=大红实心圆+图标；停止保存=绿描边圆+方块图标+文字标签。
     private var controlBar: some View {
-        HStack(spacing: 40) {
-            // 录制中或暂停时显示"停止保存"（方块）。
+        HStack(alignment: .top, spacing: 36) {
             if viewModel.isRecording {
-                Button {
-                    viewModel.finish()
-                } label: {
-                    Image(systemName: "stop.fill")
-                        .font(.title2.weight(.bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 56, height: 56)
-                        .background(AppColors.cta, in: Circle())
-                        .shadow(color: AppColors.cta.opacity(0.4), radius: 8)
-                }
-                .accessibilityIdentifier("stopSaveButton")
-                .accessibilityLabel(Text(NSLocalizedString("stop_save", comment: "")))
+                stopSaveButton
+                mainButton
+                // 镜像占位（隐藏的停止按钮），保证主按钮居中且宽度天然一致。
+                stopSaveButton.hidden()
+            } else {
+                mainButton
             }
-            // 主按钮：idle→开始(圆点)；recording→暂停(方块)；paused→继续(三角)。
-            Button {
-                viewModel.toggleRecordOrPause()
-            } label: {
-                mainButtonLabel
-            }
-            .accessibilityIdentifier("recordToggleButton")
-            // 占位，保证主按钮居中。
-            if viewModel.isRecording { Spacer().frame(width: 56) }
         }
+    }
+
+    /// 停止保存：描边圆 + 方块图标 + 文字标签（与实心的暂停按钮形成形状差异）。
+    private var stopSaveButton: some View {
+        Button {
+            viewModel.finish()
+        } label: {
+            VStack(spacing: 6) {
+                Image(systemName: "stop.fill")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(AppColors.cta)
+                    .frame(width: 52, height: 52)
+                    .background(
+                        Circle().strokeBorder(AppColors.cta, lineWidth: 2.5)
+                            .background(Circle().fill(AppColors.cta.opacity(0.12)))
+                    )
+                Text(NSLocalizedString("stop_save", comment: ""))
+                    .font(.caption2)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+        }
+        .accessibilityIdentifier("stopSaveButton")
+        .accessibilityLabel(Text(NSLocalizedString("stop_save", comment: "")))
+    }
+
+    /// 主按钮：idle→开始(圆点)；recording→暂停(双竖条)；paused→继续(三角)。
+    private var mainButton: some View {
+        Button {
+            viewModel.toggleRecordOrPause()
+        } label: {
+            mainButtonLabel
+        }
+        .accessibilityIdentifier("recordToggleButton")
     }
 
     @ViewBuilder private var mainButtonLabel: some View {
@@ -178,9 +211,13 @@ struct RecordingView: View {
                 // 圆点（开始）。
                 Circle().fill(.white).frame(width: 26, height: 26)
             case .recording:
-                // 方块（暂停）。
-                RoundedRectangle(cornerRadius: 4).fill(.white)
-                    .frame(width: 24, height: 24)
+                // 暂停：双竖条（与"停止"的方块图标明确区分）。
+                HStack(spacing: 7) {
+                    RoundedRectangle(cornerRadius: 2).fill(.white)
+                        .frame(width: 8, height: 28)
+                    RoundedRectangle(cornerRadius: 2).fill(.white)
+                        .frame(width: 8, height: 28)
+                }
             case .paused:
                 // 三角（继续）。
                 Image(systemName: "play.fill").font(.title).foregroundStyle(.white)

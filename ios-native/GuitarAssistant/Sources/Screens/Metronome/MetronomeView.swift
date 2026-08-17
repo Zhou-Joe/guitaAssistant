@@ -9,63 +9,76 @@ struct MetronomeView: View {
     @State private var showTempoMode = false
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                bpmControl
-                beatIndicator
+        // GeometryReader 取视口高度,让内容 minHeight 撑满整屏:
+        // 弹性 Spacer 把各区块分布到全屏,而不是挤在顶部。
+        GeometryReader { geo in
+            ScrollView {
+                VStack(spacing: 0) {
+                    bpmControl
+                    Spacer(minLength: 20)
+                    beatIndicator
+                    Spacer(minLength: 20)
 
-                HStack(spacing: 16) {
-                    settingsCard(
-                        title: NSLocalizedString("time_signature", comment: ""),
-                        icon: "music.note.list",
-                        value: engine.timeSignature,
-                        isExpanded: $showTimeSignature
-                    ) {
-                        timeSignatureOptions
+                    HStack(spacing: 16) {
+                        settingsCard(
+                            title: NSLocalizedString("time_signature", comment: ""),
+                            icon: "music.note.list",
+                            value: engine.timeSignature,
+                            isExpanded: $showTimeSignature
+                        ) {
+                            timeSignatureOptions
+                        }
+                        settingsCard(
+                            title: NSLocalizedString("sound", comment: ""),
+                            icon: "speaker.wave.2",
+                            value: engine.soundStyle.displayName,
+                            isExpanded: $showSoundStyle
+                        ) {
+                            soundStyleOptions
+                        }
                     }
+
+                    Spacer(minLength: 16)
+
                     settingsCard(
-                        title: NSLocalizedString("sound", comment: ""),
-                        icon: "speaker.wave.2",
-                        value: engine.soundStyle.displayName,
-                        isExpanded: $showSoundStyle
+                        title: NSLocalizedString("tempo_mode", comment: ""),
+                        icon: "speedometer",
+                        value: NSLocalizedString("tempo_mode_\(engine.tempoMode.rawValue)", comment: ""),
+                        isExpanded: $showTempoMode,
+                        full: true
                     ) {
-                        soundStyleOptions
+                        tempoModeOptions
                     }
-                }
 
-                settingsCard(
-                    title: NSLocalizedString("tempo_mode", comment: ""),
-                    icon: "speedometer",
-                    value: NSLocalizedString("tempo_mode_\(engine.tempoMode.rawValue)", comment: ""),
-                    isExpanded: $showTempoMode,
-                    full: true
-                ) {
-                    tempoModeOptions
-                }
+                    Spacer(minLength: 16)
 
-                // 音量调节
-                HStack(spacing: 12) {
-                    Image(systemName: "speaker.wave.1.fill").foregroundStyle(AppColors.textSecondary)
-                    Slider(value: Binding(
-                        get: { Double(engine.volume) },
-                        set: { engine.volume = Float($0) }
-                    ), in: 0...1).tint(AppColors.cta)
-                    Image(systemName: "speaker.wave.3.fill").foregroundStyle(AppColors.textSecondary)
+                    // 音量调节
+                    HStack(spacing: 12) {
+                        Image(systemName: "speaker.wave.1.fill").foregroundStyle(AppColors.textSecondary)
+                        Slider(value: Binding(
+                            get: { Double(engine.volume) },
+                            set: { engine.volume = Float($0) }
+                        ), in: 0...1).tint(AppColors.cta)
+                        Image(systemName: "speaker.wave.3.fill").foregroundStyle(AppColors.textSecondary)
+                    }
+                    .padding()
+                    .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 16))
+
+                    // 错误提示（如音色加载失败）
+                    if let error = engine.error {
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(AppColors.error)
+                            Text(error).font(.caption).foregroundStyle(AppColors.error)
+                        }
+                        .padding(.horizontal)
+                    }
                 }
                 .padding()
-                .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 16))
-
-                // 错误提示（如音色加载失败）
-                if let error = engine.error {
-                    HStack(spacing: 8) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(AppColors.error)
-                        Text(error).font(.caption).foregroundStyle(AppColors.error)
-                    }
-                    .padding(.horizontal)
-                }
+                // 底部给悬浮播放按钮预留空间(按钮高 56 + 底距 24),避免与音量条重叠。
+                .padding(.bottom, 100)
+                .frame(minHeight: geo.size.height)
             }
-            .padding()
         }
         .overlay(alignment: .bottom) {
             playButton
@@ -82,7 +95,7 @@ struct MetronomeView: View {
     private var bpmControl: some View {
         VStack(spacing: 12) {
             Text("\(engine.bpm)")
-                .font(.system(size: 64, weight: .bold, design: .rounded).monospacedDigit())
+                .font(.system(size: 76, weight: .bold, design: .rounded).monospacedDigit())
                 .foregroundStyle(AppColors.cta)
                 .contentTransition(.numericText())
             Text("BPM")
@@ -98,7 +111,7 @@ struct MetronomeView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
+        .padding(.vertical, 28)
         .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 20))
     }
 

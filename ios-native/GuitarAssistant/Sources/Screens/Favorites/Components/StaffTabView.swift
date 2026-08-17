@@ -7,6 +7,8 @@ struct StaffTabView: View {
     let score: TabScore
     /// 每行显示的小节数。
     let measuresPerRow: Int
+    /// 当前高亮的小节(全局索引;-1 = 不高亮,如未播放)。
+    var currentMeasureIndex: Int = -1
 
     /// 标准调弦音名（高音 E 到低音 E）。
     private let stringNames = ["e", "B", "G", "D", "A", "E"]
@@ -14,51 +16,64 @@ struct StaffTabView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                ForEach(Array(rows.enumerated()), id: \.offset) { _, rowMeasures in
+                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                     // rows 是只读计算属性，offset 作 id 不影响正确性。
-                    staffRow(rowMeasures)
+                    staffRow(row)
                 }
             }
             .padding()
         }
     }
 
-    /// 把小节按 measuresPerRow 分行。
-    private var rows: [[TabMeasure]] {
+    /// 把小节按 measuresPerRow 分行,并记录每行的全局起始索引(供高亮定位)。
+    private var rows: [(start: Int, measures: [TabMeasure])] {
         guard !score.measures.isEmpty else { return [] }
-        var result: [[TabMeasure]] = []
+        var result: [(start: Int, measures: [TabMeasure])] = []
         var current: [TabMeasure] = []
         for (i, m) in score.measures.enumerated() {
             current.append(m)
             if current.count == measuresPerRow || i == score.measures.count - 1 {
-                result.append(current)
+                result.append((start: i + 1 - current.count, measures: current))
                 current = []
             }
         }
         return result
     }
 
+    /// 弦线间距随屏幕自适应(大屏更舒展)。
+    private var adaptiveLineGap: CGFloat {
+        UIScreen.main.bounds.height > 800 ? 22 : 17
+    }
+
     /// 渲染一行六线谱。
-    private func staffRow(_ measures: [TabMeasure]) -> some View {
-        VStack(spacing: 4) {
-            // Canvas 绘制六线谱主体。
+    private func staffRow(_ row: (start: Int, measures: [TabMeasure])) -> some View {
+        // 行高由内容推导(上边距 + 5 个弦距 + 下边距),随弦距自适应。
+        let rowHeight = row.measures.isEmpty ? 100 : 24 + 5 * adaptiveLineGap + 30
+        return VStack(spacing: 4) {
+            // Canvas 绘制六线谱主体(含当前小节高亮)。
             Canvas { ctx, size in
-                drawStaff(ctx: ctx, size: size, measures: measures)
+                drawStaff(ctx: ctx, size: size, row: row)
             }
-            .frame(height: CGFloat(measures.count > 0 ? 160 : 100))
+            .frame(height: rowHeight)
         }
     }
 
     // MARK: - Canvas 绘制
 
-    private func drawStaff(ctx: GraphicsContext, size: CGSize, measures: [TabMeasure]) {
+    private func drawStaff(ctx: GraphicsContext, size: CGSize,
+                           row: (start: Int, measures: [TabMeasure])) {
+        let measures = row.measures
         guard !measures.isEmpty else { return }
+        // 本行内要高亮的小节(-1 = 无)。
+        let highlightLocal = (currentMeasureIndex >= row.start
+                              && currentMeasureIndex < row.start + measures.count)
+            ? currentMeasureIndex - row.start : -1
 
         let leftMargin: CGFloat = 24      // 弦名留白
         let rightMargin: CGFloat = 8
         let topMargin: CGFloat = 24       // 和弦名留白
         let lineCount = 6
-        let lineGap: CGFloat = 16         // 弦线间距
+        let lineGap: CGFloat = adaptiveLineGap   // 弦线间距(随屏幕自适应)
         let staffHeight = CGFloat(lineCount - 1) * lineGap
         let totalWidth = size.width - leftMargin - rightMargin
         let measureWidth = totalWidth / CGFloat(measures.count)
@@ -67,6 +82,18 @@ struct StaffTabView: View {
         let accentColor = AppColors.cta
         let textColor = AppColors.textPrimary
         let chordColor = AppColors.warning
+
+        // 当前小节高亮:半透明底色 + 绿色描边(盖住和弦名区域)。
+        if highlightLocal >= 0 {
+            let hx = leftMargin + CGFloat(highlightLocal) * measureWidth
+            let highlightRect = CGRect(x: hx, y: topMargin - 20,
+                                       width: measureWidth,
+                                       height: staffHeight + 28)
+            ctx.fill(Path(roundedRect: highlightRect, cornerRadius: 8),
+                     with: .color(AppColors.secondary.opacity(0.30)))
+            ctx.stroke(Path(roundedRect: highlightRect, cornerRadius: 8),
+                       with: .color(AppColors.cta), lineWidth: 2)
+        }
 
         // 绘制每根弦线（横线），贯穿整行。
         for i in 0..<lineCount {

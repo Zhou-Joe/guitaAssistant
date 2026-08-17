@@ -1,5 +1,9 @@
 import SwiftUI
 
+/// 图表基准高度:随屏幕自适应(至少 220 / 176),大屏充分利用。
+private var chartHeight: CGFloat { max(220, UIScreen.main.bounds.height * 0.30) }
+private var chartHeightSmall: CGFloat { chartHeight * 0.8 }
+
 /// 波形视图。对应 Flutter `waveform_view.dart`，但用真实 RMS 包络数据。
 struct WaveformView: View {
     let waveform: [Double]
@@ -12,7 +16,7 @@ struct WaveformView: View {
                 canvas
             }
         }
-        .frame(height: 160)
+        .frame(height: chartHeight)
         .padding()
         .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 16))
     }
@@ -63,7 +67,7 @@ struct TimelineView: View {
                 drawRow(ctx: ctx, size: size, times: actual, maxT: maxT,
                         y: size.height * 0.7, color: AppColors.cta)
             }
-            .frame(height: 120)
+            .frame(height: chartHeightSmall)
 
             HStack(spacing: 16) {
                 legend(color: AppColors.cta, text: NSLocalizedString("legend_actual", comment: ""))
@@ -110,7 +114,7 @@ struct HeatmapView: View {
                 Text(NSLocalizedString("no_data", comment: ""))
                     .foregroundStyle(AppColors.textMuted)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 120)
+                    .frame(height: chartHeightSmall)
             } else {
                 Canvas { ctx, size in
                     let count = perBeat.count
@@ -118,25 +122,26 @@ struct HeatmapView: View {
                     let barW = (size.width - spacing * CGFloat(count - 1)) / CGFloat(count)
                     for (i, beat) in perBeat.enumerated() {
                         let x = CGFloat(i) * (barW + spacing)
-                        let (h, color) = style(for: beat)
+                        // 条高随画布高度伸缩(而非固定像素),大屏更饱满。
+                        let (fraction, color) = style(for: beat)
+                        let h = max(12, size.height * fraction)
                         let rect = CGRect(x: x, y: size.height - h,
                                           width: barW, height: h)
                         ctx.fill(Path(roundedRect: rect, cornerRadius: 3), with: .color(color))
                     }
                 }
-                .frame(height: 120)
+                .frame(height: chartHeightSmall)
             }
         }
         .padding()
         .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 16))
     }
 
-    private func style(for beat: (offset: Double, accuracy: BeatAccuracy)) -> (height: CGFloat, color: Color) {
-        let baseH: CGFloat = 90
+    private func style(for beat: (offset: Double, accuracy: BeatAccuracy)) -> (fraction: CGFloat, color: Color) {
         switch beat.accuracy {
-        case .onBeat: return (baseH, AppColors.cta)
-        case .close: return (baseH * 0.6, AppColors.warning)
-        case .off: return (baseH * 0.3, AppColors.error)
+        case .onBeat: return (0.92, AppColors.cta)
+        case .close: return (0.6, AppColors.warning)
+        case .off: return (0.3, AppColors.error)
         }
     }
 }

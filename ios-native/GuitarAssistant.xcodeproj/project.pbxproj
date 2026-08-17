@@ -36,6 +36,7 @@
 		91296B76851E65266CDC5077 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21FCDC48A27E4AE089EC243C /* MainTabView.swift */; };
 		968C65CD68F3947162A46B91 /* RecordingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF8D075740C4171C4C29F9F /* RecordingViewModel.swift */; };
 		96F7B3B63E7F7D815E785E53 /* DigitClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C4E58FC9D06E58392F42D8E /* DigitClassifier.swift */; };
+		b28f6d0c4e1a5f3b9c7d2e02 /* TabVisionAlgorithms.swift in Sources */ = {isa = PBXBuildFile; fileRef = a17e5c9b3d0f4e2a8b6c1d01 /* TabVisionAlgorithms.swift */; };
 		9B7157AF324A372F6AA2F28A /* RecordingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C3CF6CD170AB8FA9BB99EC /* RecordingView.swift */; };
 		9CB34E530118EFE8835CC499 /* click_classic_accent.wav in Resources */ = {isa = PBXBuildFile; fileRef = ADBBDCCFED51331CB732ABF8 /* click_classic_accent.wav */; };
 		9D95468599E847B914AD7CCD /* InteractiveTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 605B219F4DB548CA5BD17AD7 /* InteractiveTabView.swift */; };
@@ -58,6 +59,7 @@
 		C75C57AC167E9A66954AE073 /* ErrorState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2807C6743232CFE5A0D7CF68 /* ErrorState.swift */; };
 		C8AFED2550807637FB826107 /* TunerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C818ED98F52204671EFA44 /* TunerViewModel.swift */; };
 		CB50F1D5F220817B1752F759 /* TunerDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4397F6831289458F5D8EB1D6 /* TunerDisplay.swift */; };
+		d4a08f2c6d3b7e5d1c9f4a04 /* TunerHeadstockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = c39f7e1d5b2a6f4c0d8e3f03 /* TunerHeadstockView.swift */; };
 		CE7AB588E1CFCC1A805D6293 /* TabScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 907D9534D025F72A13D7A744 /* TabScore.swift */; };
 		D124494C2072464D1A6920A5 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33657043481DF5F453C46F2 /* Models.swift */; };
 		D1E34A079188D2999E215138 /* click_classic.wav in Resources */ = {isa = PBXBuildFile; fileRef = C630EDED912D75D7723FF0CB /* click_classic.wav */; };
@@ -96,11 +98,13 @@
 		29ADCAA27A14ED1E32EE69B0 /* CameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreview.swift; sourceTree = "<group>"; };
 		2BABD8ECD82FA9C13B64B687 /* click_hihat.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_hihat.wav; sourceTree = "<group>"; };
 		2C4E58FC9D06E58392F42D8E /* DigitClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DigitClassifier.swift; sourceTree = "<group>"; };
+		a17e5c9b3d0f4e2a8b6c1d01 /* TabVisionAlgorithms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabVisionAlgorithms.swift; sourceTree = "<group>"; };
 		3C5F48B6B438F1C0B650AD04 /* click_woodblock.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_woodblock.wav; sourceTree = "<group>"; };
 		3C9CCFB1018FCD4D8DE80213 /* TABComputerVision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TABComputerVision.swift; sourceTree = "<group>"; };
 		40366462FF6E2833D930323E /* AIConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIConfigView.swift; sourceTree = "<group>"; };
 		4342C15945C347DE677E6DF5 /* AudioSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinator.swift; sourceTree = "<group>"; };
 		4397F6831289458F5D8EB1D6 /* TunerDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunerDisplay.swift; sourceTree = "<group>"; };
+		c39f7e1d5b2a6f4c0d8e3f03 /* TunerHeadstockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunerHeadstockView.swift; sourceTree = "<group>"; };
 		43C0534A0BD6954009CF61D2 /* TabViewerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabViewerView.swift; sourceTree = "<group>"; };
 		43C89CB3E2C73CDA1502DFB6 /* click_digital.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_digital.wav; sourceTree = "<group>"; };
 		4720474898D8154EAA1B3C82 /* MetronomeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetronomeEngine.swift; sourceTree = "<group>"; };
@@ -300,6 +304,7 @@
 			isa = PBXGroup;
 			children = (
 				4397F6831289458F5D8EB1D6 /* TunerDisplay.swift */,
+				c39f7e1d5b2a6f4c0d8e3f03 /* TunerHeadstockView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -390,6 +395,7 @@
 				D2B21D88ED8C840346BB429D /* PitchDetector.swift */,
 				630BF27D4B9DFB5476EA3FE2 /* RhythmAnalyzer.swift */,
 				907D9534D025F72A13D7A744 /* TabScore.swift */,
+				a17e5c9b3d0f4e2a8b6c1d01 /* TabVisionAlgorithms.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -576,6 +582,7 @@
 				7AF574BC55ADD567F9EDAC96 /* ChordLibrary.swift in Sources */,
 				52FB91C0931F25779CC88057 /* DataSeeder.swift in Sources */,
 				96F7B3B63E7F7D815E785E53 /* DigitClassifier.swift in Sources */,
+				b28f6d0c4e1a5f3b9c7d2e02 /* TabVisionAlgorithms.swift in Sources */,
 				6215B4228FFA2F03DCB02A77 /* EmptyStateView.swift in Sources */,
 				C75C57AC167E9A66954AE073 /* ErrorState.swift in Sources */,
 				9EEE397222FC741D7EC82A1A /* FavoritesView.swift in Sources */,
@@ -606,6 +613,7 @@
 				CE7AB588E1CFCC1A805D6293 /* TabScore.swift in Sources */,
 				8A532DC0A2D58A8E26E14772 /* TabViewerView.swift in Sources */,
 				CB50F1D5F220817B1752F759 /* TunerDisplay.swift in Sources */,
+				d4a08f2c6d3b7e5d1c9f4a04 /* TunerHeadstockView.swift in Sources */,
 				E6EDAE5AEE03FD44DACC4ACC /* TunerView.swift in Sources */,
 				C8AFED2550807637FB826107 /* TunerViewModel.swift in Sources */,
 			);

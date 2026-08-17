@@ -31,14 +31,7 @@ struct InteractiveTabView: View {
         case annotate    // 原图叠加标注
     }
 
-    /// 小节视图的子模式：卡片 vs 标准六线谱。
-    enum MeasureSubMode: String, CaseIterable {
-        case cards   // 小节卡片（横向滚动）
-        case staff   // 标准六线谱样式
-    }
-
     @State private var mode: Mode = .measures
-    @State private var measureSubMode: MeasureSubMode = .cards
     /// 六线谱视图每行显示的小节数。
     @State private var measuresPerRow: Int = 4
     @State private var showShareSheet = false
@@ -150,45 +143,12 @@ struct InteractiveTabView: View {
                     }
                 }
             } else {
-                // 子视图切换：卡片 / 六线谱。
-                measureSubModePicker
-
-                switch measureSubMode {
-                case .cards:
-                    cardsView
-                case .staff:
-                    StaffTabView(score: currentScore, measuresPerRow: measuresPerRow)
-                    // 每行小节数调节。
-                    measuresPerRowControl
-                }
-                playbackControls
+                // 标准六线谱(播放时高亮当前小节)+ 每行小节数调节。
+                StaffTabView(score: currentScore,
+                             measuresPerRow: measuresPerRow,
+                             currentMeasureIndex: metronome.isPlaying ? currentMeasureIndex : -1)
+                measuresPerRowControl
             }
-        }
-    }
-
-    /// 子模式切换器。
-    private var measureSubModePicker: some View {
-        HStack {
-            Picker("", selection: $measureSubMode) {
-                ForEach(MeasureSubMode.allCases, id: \.self) { sub in
-                    Text(NSLocalizedString("sub_\(sub.rawValue)", comment: "")).tag(sub)
-                }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-        }
-        .padding(.horizontal)
-    }
-
-    /// 卡片视图（原有横向滚动）。
-    private var cardsView: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                        ForEach(Array(currentScore.measures.enumerated()), id: \.element.id) { idx, measure in
-                    measureCard(idx: idx, measure: measure)
-                }
-            }
-            .padding()
         }
     }
 
@@ -205,59 +165,7 @@ struct InteractiveTabView: View {
         .padding(.horizontal)
     }
 
-    private func measureCard(idx: Int, measure: TabMeasure) -> some View {
-        let isCurrent = metronome.isPlaying && currentMeasureIndex == idx
-        return VStack(alignment: .leading, spacing: 6) {
-            // 和弦名。
-            if !measure.chords.isEmpty {
-                Text(measure.chords.joined(separator: " "))
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(AppColors.warning)
-            }
-            // 六线谱（每弦一行）。
-            VStack(alignment: .leading, spacing: 2) {
-                ForEach(0..<6, id: \.self) { s in
-                    HStack(spacing: 4) {
-                        Text(stringName(s))
-                            .font(.system(size: 10, design: .monospaced))
-                            .foregroundStyle(AppColors.textMuted)
-                        Text(measure.strings[s].map { note -> String in
-                            let f = note.fret >= 10 ? "\(note.fret)" : "\(note.fret)"
-                            return note.technique == .normal ? f : "\(f)\(note.technique.symbol)"
-                        }.joined(separator: "-"))
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundStyle(AppColors.textPrimary)
-                    }
-                }
-            }
-            Text("\(idx + 1)").font(.system(size: 9)).foregroundStyle(AppColors.textMuted)
-        }
-        .padding(10)
-        .background(isCurrent ? AppColors.secondary : AppColors.surface, in: RoundedRectangle(cornerRadius: 8))
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(isCurrent ? AppColors.cta : .clear, lineWidth: 2)
-        )
-    }
-
-    private func stringName(_ idx: Int) -> String {
-        ["e", "B", "G", "D", "A", "E"][idx]
-    }
-
-    private var playbackControls: some View {
-        HStack(spacing: 16) {
-            Button { metronome.togglePlay() } label: {
-                Image(systemName: metronome.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.title2).foregroundStyle(AppColors.cta)
-            }
-            Text("\(metronome.bpm) BPM").font(.caption.monospacedDigit())
-                .foregroundStyle(AppColors.textSecondary)
-            Spacer()
-        }
-        .padding(.horizontal)
-    }
-
-    /// 当前应该高亮的小节索引。
+    /// 当前应高亮的小节索引(传给 StaffTabView)。
     /// 与节拍器严格对齐:每个节拍器小节(强拍起)推进一张卡片——
     /// 累计已响拍数 ÷ 每小节拍数 = 当前小节序号。
     private var currentMeasureIndex: Int {
@@ -276,7 +184,7 @@ struct InteractiveTabView: View {
                 EmptyStateView(systemImage: "music.quarternote.3",
                                title: NSLocalizedString("no_chords", comment: ""))
             } else {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 130))], spacing: 16) {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 155), spacing: 16)], spacing: 20) {
                     ForEach(allChords, id: \.self) { name in
                         ChordCardView(chordName: name)
                     }

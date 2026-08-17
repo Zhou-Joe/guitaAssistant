@@ -11,7 +11,6 @@ struct TabViewerView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
-    @State private var showMetronomePanel = false
     @State private var currentPage = 0
     @State private var totalPages = 0
     @State private var pdfLoadFailed = false
@@ -81,12 +80,6 @@ struct TabViewerView: View {
                         .foregroundStyle(recognitionPhaseDone ? AppColors.cta : AppColors.textSecondary)
                 }
             }
-            Button {
-                showMetronomePanel.toggle()
-            } label: {
-                Image(systemName: "metronome")
-                    .foregroundStyle(metronome.isPlaying ? AppColors.cta : AppColors.textSecondary)
-            }
         }
         .padding(.horizontal).padding(.vertical, 8)
         .background(AppColors.surface)
@@ -119,9 +112,6 @@ struct TabViewerView: View {
                                currentPage = page; totalPages = total
                            },
                            onLoadFailed: { pdfLoadFailed = true })
-                    .overlay(alignment: .bottom) {
-                        if showMetronomePanel { metronomePanel.padding() }
-                    }
             }
         } else {
             // 图片曲谱：识别中/出错/有结果/原图 四种状态。
@@ -168,9 +158,6 @@ struct TabViewerView: View {
                                        })
                 } else {
                     ImageViewer(url: url)
-                        .overlay(alignment: .bottom) {
-                            if showMetronomePanel { metronomePanel.padding() }
-                        }
                 }
             }
         }
@@ -249,30 +236,6 @@ struct TabViewerView: View {
                                              model: config.modelName)
     }
 
-    private var metronomePanel: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Button { metronome.setBpm(metronome.bpm - 5) } label: {
-                    Image(systemName: "minus").frame(width: 30)
-                }
-                Text("\(metronome.bpm) BPM").monospacedDigit()
-                Button { metronome.setBpm(metronome.bpm + 5) } label: {
-                    Image(systemName: "plus").frame(width: 30)
-                }
-                Spacer()
-                Button { metronome.togglePlay() } label: {
-                    Label(metronome.isPlaying
-                          ? NSLocalizedString("pause", comment: "")
-                          : NSLocalizedString("start", comment: ""),
-                          systemImage: metronome.isPlaying ? "pause.fill" : "play.fill")
-                }
-            }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(AppColors.textPrimary)
-        }
-        .padding()
-        .background(AppColors.surfaceElevated, in: RoundedRectangle(cornerRadius: 16))
-    }
 }
 
 /// PDFKit 封装。监听翻页并暴露页码；文档加载失败时显示占位。

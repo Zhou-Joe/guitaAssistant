@@ -100,23 +100,24 @@ struct ChordCardView: View {
     @State private var shape: ChordShape?
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 10) {
             if let shape {
-                ChordDiagramView(chord: shape, size: 100)
-                Text(chordName).font(.caption.weight(.semibold))
+                ChordDiagramView(chord: shape, size: 134)
+                Text(chordName).font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColors.textPrimary)
             } else {
                 // 内置库未收录的和弦：显示名称 + 提示。
                 Image(systemName: "questionmark.circle")
-                    .font(.system(size: 40)).foregroundStyle(AppColors.textMuted)
-                Text(chordName).font(.caption.weight(.semibold))
+                    .font(.system(size: 48)).foregroundStyle(AppColors.textMuted)
+                Text(chordName).font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColors.textPrimary)
                 Text(NSLocalizedString("chord_not_found", comment: ""))
-                    .font(.system(size: 9)).foregroundStyle(AppColors.textMuted)
+                    .font(.caption2).foregroundStyle(AppColors.textMuted)
             }
         }
-        .padding(10)
-        .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 12))
+        .frame(maxWidth: .infinity)
+        .padding(14)
+        .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 16))
         .onAppear {
             shape = ChordLibrary.find(chordName)
         }

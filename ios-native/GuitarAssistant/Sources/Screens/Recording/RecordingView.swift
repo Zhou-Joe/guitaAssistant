@@ -148,9 +148,14 @@ struct RecordingView: View {
                 Spacer()
             }
         }
-        .frame(height: 240)
+        .frame(height: previewHeight)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .padding(.horizontal)
+    }
+
+    /// 视频预览高度:屏幕高的 42%(至少 240),大屏充分利用。
+    private var previewHeight: CGFloat {
+        max(240, UIScreen.main.bounds.height * 0.42)
     }
 
     /// 控制条：录制中/暂停时显示"停止保存"按钮 + 主按钮；空闲时只显示主按钮。
@@ -301,7 +306,7 @@ struct RecordingView: View {
             if rec.mode == .video && playback.currentRecordingId == rec.id,
                let vp = playback.videoPlayer {
                 VideoPlayer(player: vp)
-                    .frame(height: 180)
+                    .frame(height: max(220, UIScreen.main.bounds.height * 0.3))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             // 播放控制条。

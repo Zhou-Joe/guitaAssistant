@@ -18,6 +18,7 @@
 		36AAB245CCAA14B7E8066583 /* click_cowbell.wav in Resources */ = {isa = PBXBuildFile; fileRef = 227F2CCDD8062B76612CEE64 /* click_cowbell.wav */; };
 		3A118C1AD581E72D5D9FE4E8 /* click_hihat_accent.wav in Resources */ = {isa = PBXBuildFile; fileRef = 7CF7C4D1B0CDBF54D792D239 /* click_hihat_accent.wav */; };
 		3CE1ABDA756584F4340D0684 /* MinimizedMetronome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67A0705188C670D273E29F1D /* MinimizedMetronome.swift */; };
+		f6a19b4c8d0e1f2a3b4c5d06 /* ThemeBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = e5f08a3b7c9d0e1f2a3b4c05 /* ThemeBackground.swift */; };
 		3DA4A9E94B76ADFD61690B1B /* PlaybackController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A280556262A32F626D1EF631 /* PlaybackController.swift */; };
 		426069D61A62D2E63008467C /* RecognitionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8AB4D6E2B7EF7B1E47C71FF /* RecognitionViewModel.swift */; };
 		43CDBBAA7F4649482EE3A882 /* SecondTabUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 727E028F04C5F4D05090939C /* SecondTabUITests.swift */; };
@@ -116,6 +117,7 @@
 		630BF27D4B9DFB5476EA3FE2 /* RhythmAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhythmAnalyzer.swift; sourceTree = "<group>"; };
 		65C9186A232E284E7BD33039 /* ChordDiagramView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordDiagramView.swift; sourceTree = "<group>"; };
 		67A0705188C670D273E29F1D /* MinimizedMetronome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimizedMetronome.swift; sourceTree = "<group>"; };
+		e5f08a3b7c9d0e1f2a3b4c05 /* ThemeBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeBackground.swift; sourceTree = "<group>"; };
 		68257B59B278E48279232E34 /* MetronomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetronomeView.swift; sourceTree = "<group>"; };
 		6D3D38AC13942AFF549711C1 /* RecognizedTabModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecognizedTabModel.swift; sourceTree = "<group>"; };
 		6FE8881D7BD46E03133914E4 /* EditTabUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditTabUITests.swift; sourceTree = "<group>"; };
@@ -201,6 +203,7 @@
 				5CAB33F9CA13EF74F671066D /* CardView.swift */,
 				C70A98D7C9875CD593A9FFFB /* EmptyStateView.swift */,
 				67A0705188C670D273E29F1D /* MinimizedMetronome.swift */,
+				e5f08a3b7c9d0e1f2a3b4c05 /* ThemeBackground.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -595,6 +598,7 @@
 				7BE72777E94C3FBB26443685 /* MetronomeEngine.swift in Sources */,
 				75092DB07C999BFC55B93C07 /* MetronomeView.swift in Sources */,
 				3CE1ABDA756584F4340D0684 /* MinimizedMetronome.swift in Sources */,
+				f6a19b4c8d0e1f2a3b4c5d06 /* ThemeBackground.swift in Sources */,
 				D124494C2072464D1A6920A5 /* Models.swift in Sources */,
 				DC1D0CEF833BF0CED31EBE3F /* PitchDetector.swift in Sources */,
 				3DA4A9E94B76ADFD61690B1B /* PlaybackController.swift in Sources */,

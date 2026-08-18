@@ -75,7 +75,7 @@ enum AppColors {
         : Color(hex: 0xFFF6EC) }    // 奶油米白
     static var surface: Color { isDark
         ? Color(hex: 0x1A1A2E)      // 卡片、面板
-        : Color(hex: 0xFFFFFF) }    // 纯白卡片(暖底上浮起)
+        : Color(hex: 0xFFFDF8) }    // 暖白卡片(奶油底上浮起)
     static var surfaceElevated: Color { isDark
         ? Color(hex: 0x252542)
         : Color(hex: 0xFFEFD9) }    // 蜜桃奶油

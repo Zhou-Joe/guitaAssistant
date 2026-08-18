@@ -68,8 +68,8 @@ struct MainTabView: View {
                     .padding(.bottom, 88)
             }
         }
-        // 根背景铺主题色(窗口底色与主题一致)。
-        .background(AppColors.background.ignoresSafeArea())
+        // 根背景:夜间纯色;日间暖色渐变 + 可爱图案。
+        .background(ThemeBackground())
         // 系统 UI(导航/Tab 栏、键盘等)跟随应用内主题(system 模式传 nil);
         // .id 含系统深浅色:主题切换或系统外观变化时整树重建,即时换肤。
         .id("\(theme.mode.rawValue)-\(systemScheme)")

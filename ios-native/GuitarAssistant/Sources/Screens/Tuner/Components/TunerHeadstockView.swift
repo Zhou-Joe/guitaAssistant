@@ -68,7 +68,6 @@ struct TunerHeadstockView: View {
             let scale = min(geo.size.width / designSize.width,
                             geo.size.height / designSize.height)
             ZStack {
-                neck
                 headstockFace
                 strings
                 nut
@@ -163,25 +162,6 @@ struct TunerHeadstockView: View {
             }
         }
         .stroke(Color(hex: 0x171009).opacity(0.55), style: StrokeStyle(lineWidth: 1.4, lineCap: .round))
-    }
-
-    /// 枕木下方的琴颈,渐隐收尾(不等到底边——底部让位给仪表区,
-    /// 避免木纹与页面底色的交界形成色带感)。
-    private var neck: some View {
-        Path { p in
-            p.move(to: CGPoint(x: 145, y: 478))
-            p.addLine(to: CGPoint(x: 255, y: 478))
-            p.addLine(to: CGPoint(x: 258, y: 590))
-            p.addLine(to: CGPoint(x: 142, y: 590))
-            p.closeSubpath()
-        }
-        .fill(LinearGradient(
-            stops: [
-                .init(color: Color(hex: 0x2E1E13), location: 0),
-                .init(color: Color(hex: 0x2E1E13).opacity(0.5), location: 0.55),
-                .init(color: .clear, location: 1)
-            ],
-            startPoint: .top, endPoint: .bottom))
     }
 
     // MARK: - 枕木(骨白)

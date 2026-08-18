@@ -29,6 +29,8 @@ struct MainTabView: View {
         TabView(selection: $selectedTab) {
             NavigationStack {
                 TunerView()
+                    .background(ThemeBackground())
+                    .toolbarBackground(.hidden, for: .navigationBar)
             }
             .tabItem {
                 Label(NSLocalizedString("tuner", comment: ""), systemImage: "tuningfork")
@@ -37,6 +39,8 @@ struct MainTabView: View {
 
             NavigationStack {
                 MetronomeView()
+                    .background(ThemeBackground())
+                    .toolbarBackground(.hidden, for: .navigationBar)
             }
             .tabItem {
                 Label(NSLocalizedString("metronome", comment: ""), systemImage: "metronome")
@@ -45,6 +49,8 @@ struct MainTabView: View {
 
             NavigationStack {
                 FavoritesView()
+                    .background(ThemeBackground())
+                    .toolbarBackground(.hidden, for: .navigationBar)
             }
             .tabItem {
                 Label(NSLocalizedString("favorites", comment: ""), systemImage: "star")
@@ -53,6 +59,8 @@ struct MainTabView: View {
 
             NavigationStack {
                 SettingsView(deepLink: $deepLink)
+                    .background(ThemeBackground())
+                    .toolbarBackground(.hidden, for: .navigationBar)
             }
             .tabItem {
                 Label(NSLocalizedString("settings", comment: ""), systemImage: "gearshape")

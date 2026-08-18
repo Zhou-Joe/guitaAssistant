@@ -27,8 +27,14 @@ final class LanguageManager {
         didSet {
             if let current {
                 UserDefaults.standard.set(current.rawValue, forKey: key)
+                // 同步写入系统语言偏好——NSLocalizedString 在下次启动时
+                // 按 AppleLanguages 解析 Bundle 语言,切换才会真正生效。
+                UserDefaults.standard.set([current.rawValue], forKey: "AppleLanguages")
+                UserDefaults.standard.set([current.rawValue], forKey: "AppleLocale")
             } else {
                 UserDefaults.standard.removeObject(forKey: key)
+                UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+                UserDefaults.standard.removeObject(forKey: "AppleLocale")
             }
         }
     }
@@ -42,8 +48,15 @@ final class LanguageManager {
     }
 
     init() {
-        if let raw = UserDefaults.standard.string(forKey: key) {
-            current = AppLanguage(rawValue: raw)
+        if let raw = UserDefaults.standard.string(forKey: key),
+           let lang = AppLanguage(rawValue: raw) {
+            current = lang
+            // 兼容旧版本:此前只存了偏好没写入 AppleLanguages,这里补同步,
+            // 否则升级后首次重启语言切换仍不生效。
+            if UserDefaults.standard.stringArray(forKey: "AppleLanguages")?.first != raw {
+                UserDefaults.standard.set([raw], forKey: "AppleLanguages")
+                UserDefaults.standard.set([raw], forKey: "AppleLocale")
+            }
         }
     }
 }

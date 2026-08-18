@@ -112,24 +112,30 @@ final class TABComputerVision {
         let confidence = TabVisionAlgorithms.confidence(systems: systems, digits: digits)
         diag("组装完成: \(score.measures.count) 个小节, 置信度=\(String(format: "%.2f", confidence))")
 
-        // 8. 和弦识别(若配置了 AI,且 CV 已识别出内容;空结果时跳过,由上层回退 AI)。
+        // 8. 和弦识别:AI 优先;未配置/失败时用本地 Vision OCR 兜底
+        //    (读谱面上方条带里的和弦名,分词后用 ChordLibrary 校验)。
         var finalScore = score
-        if let chordConfig, !finalScore.measures.isEmpty {
-            let chords = try? await recognizeChords(image: image, config: chordConfig)
-            if let chords, !chords.isEmpty {
+        if finalScore.measures.isEmpty {
+            diag("CV 无小节,跳过和弦识别(交由上层回退)")
+        } else {
+            var chords: [String] = []
+            if let chordConfig {
+                chords = (try? await recognizeChords(image: image, config: chordConfig)) ?? []
+            }
+            if chords.isEmpty {
+                chords = recognizeChordsLocally(image: normalized, systems: systems)
+                if !chords.isEmpty { diag("和弦走本地 OCR") }
+            }
+            if !chords.isEmpty {
                 // 按比例把和弦名分配到各小节(chords 数与 measures 数不一定相等)。
                 let count = finalScore.measures.count
                 for i in finalScore.measures.indices {
                     let idx = min(Int(Double(i) * Double(chords.count) / Double(count)),
-                                  chords.count - 1)
+                                  max(0, chords.count - 1))
                     finalScore.measures[i].chords = [chords[idx]]
                 }
             }
-            diag("和弦识别: \(chords ?? [])")
-        } else if chordConfig != nil {
-            diag("CV 无小节,跳过和弦识别(交由上层回退)")
-        } else {
-            diag("无 AI 配置,跳过和弦识别(仅六线谱数字)")
+            diag("和弦识别: \(chords)")
         }
         return CVResult(score: finalScore, confidence: confidence)
     }
@@ -171,6 +177,77 @@ final class TABComputerVision {
             return nil
         }
         return UIImage(cgImage: outputCG)
+    }
+
+    // MARK: - 本地和弦 OCR(Vision)
+
+    /// 用 Vision OCR 读各系统上方条带里的和弦名,按阅读顺序返回。
+    /// 条带 = 上一系统底线(首系统取图顶)到本系统顶线上方;双尺度(1x/3x)
+    /// 并集提高小字召回;分词后仅保留能被 ChordLibrary 解析的和弦 token。
+    func recognizeChordsLocally(image: UIImage, systems: [TVStringSystem]) -> [String] {
+        guard !systems.isEmpty, let cg = image.cgImage else { return [] }
+        var results: [String] = []
+        for (si, system) in systems.enumerated() {
+            let d = system.spacing
+            guard let top = system.lineYs.first else { continue }
+            let prevBottom = si == 0 ? 0.0 : (systems[si - 1].lineYs.last ?? 0)
+            let bandTop = max(0, Int(prevBottom + 0.1 * d))
+            let bandBottom = min(cg.height - 1, Int(top - 0.15 * d))
+            guard bandBottom - bandTop > 8 else { continue }
+            let rect = CGRect(x: 0, y: bandTop, width: cg.width, height: bandBottom - bandTop)
+            guard let crop = cg.cropping(to: rect) else { continue }
+
+            // 双尺度 OCR(1x 原始 + 3x 放大)。
+            var texts: [String] = []
+            for scale in [1, 3] {
+                let sw = crop.width * scale, sh = crop.height * scale
+                var buf = [UInt8](repeating: 255, count: sw * sh)
+                guard let ctx = CGContext(data: &buf, width: sw, height: sh,
+                                          bitsPerComponent: 8, bytesPerRow: sw,
+                                          space: CGColorSpaceCreateDeviceGray(),
+                                          bitmapInfo: CGImageAlphaInfo.none.rawValue) else { continue }
+                ctx.interpolationQuality = .none
+                ctx.draw(crop, in: CGRect(x: 0, y: 0, width: sw, height: sh))
+                guard let scaledImg = ctx.makeImage() else { continue }
+                let request = VNRecognizeTextRequest()
+                request.recognitionLevel = .accurate
+                request.usesLanguageCorrection = false
+                let handler = VNImageRequestHandler(cgImage: scaledImg, options: [:])
+                try? handler.perform([request])
+                texts += (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+            }
+            results += Self.extractChordTokens(from: texts)
+        }
+        // 去掉相邻重复(双尺度会重复识别同一行)。
+        var deduped: [String] = []
+        for c in results where c != deduped.last { deduped.append(c) }
+        return deduped
+    }
+
+    /// 从 OCR 文本行提取和弦 token:按非和弦字符切分,ChordLibrary 能解析的保留。
+    static func extractChordTokens(from lines: [String]) -> [String] {
+        var tokens: [String] = []
+        for line in lines {
+            var current = ""
+            func flush() {
+                let t = current
+                current = ""
+                guard !t.isEmpty, let first = t.first else { return }
+                // 能被和弦库解析(表内或音程可解)才算和弦;过滤标题/歌词噪声。
+                guard ChordLibrary.find(t) != nil else { return }
+                // 规范显示:首字母大写。
+                tokens.append(first.uppercased() + t.dropFirst())
+            }
+            for ch in line {
+                if ch.isLetter || ch.isNumber || ch == "#" || ch == "b" || ch == "♯" || ch == "♭" {
+                    current.append(ch)
+                } else {
+                    flush()
+                }
+            }
+            flush()
+        }
+        return tokens
     }
 
     // MARK: - 和弦识别(走 AI,可选)

@@ -9,7 +9,7 @@ enum TempoMode: String, CaseIterable {
 
 /// 点击音色。
 enum SoundStyle: String, CaseIterable {
-    case classic, woodblock, hihat, cowbell, digital
+    case classic, woodblock, hihat, cowbell, digital, rim, clap, shaker, kick, beep
 
     /// 普通拍资源名（不含扩展）。
     var normalAsset: String { "click_\(rawValue)" }
@@ -23,6 +23,11 @@ enum SoundStyle: String, CaseIterable {
         case .hihat: return NSLocalizedString("sound_hihat", comment: "")
         case .cowbell: return NSLocalizedString("sound_cowbell", comment: "")
         case .digital: return NSLocalizedString("sound_digital", comment: "")
+        case .rim: return NSLocalizedString("sound_rim", comment: "")
+        case .clap: return NSLocalizedString("sound_clap", comment: "")
+        case .shaker: return NSLocalizedString("sound_shaker", comment: "")
+        case .kick: return NSLocalizedString("sound_kick", comment: "")
+        case .beep: return NSLocalizedString("sound_beep", comment: "")
         }
     }
 }

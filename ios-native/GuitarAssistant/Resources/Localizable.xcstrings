@@ -1769,6 +1769,40 @@
     }
    }
   },
+  "sound_beep": {
+   "extractionState": "manual",
+   "localizations": {
+    "en": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "Beep"
+     }
+    },
+    "zh": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "哔哔音"
+     }
+    }
+   }
+  },
+  "sound_clap": {
+   "extractionState": "manual",
+   "localizations": {
+    "en": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "Clap"
+     }
+    },
+    "zh": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "拍手"
+     }
+    }
+   }
+  },
   "sound_classic": {
    "extractionState": "manual",
    "localizations": {
@@ -1833,6 +1867,57 @@
      "stringUnit": {
       "state": "translated",
       "value": "踩镲"
+     }
+    }
+   }
+  },
+  "sound_kick": {
+   "extractionState": "manual",
+   "localizations": {
+    "en": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "Kick"
+     }
+    },
+    "zh": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "底鼓"
+     }
+    }
+   }
+  },
+  "sound_rim": {
+   "extractionState": "manual",
+   "localizations": {
+    "en": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "Rim"
+     }
+    },
+    "zh": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "鼓边"
+     }
+    }
+   }
+  },
+  "sound_shaker": {
+   "extractionState": "manual",
+   "localizations": {
+    "en": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "Shaker"
+     }
+    },
+    "zh": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "沙锤"
      }
     }
    }

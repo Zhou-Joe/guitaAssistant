@@ -58,6 +58,16 @@
 		C2DA3E48451DC60C8800554E /* TabEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF00F81BA25066095A42BDDF /* TabEditorView.swift */; };
 		C42724068E5DEA54CC38AEF2 /* click_cowbell_accent.wav in Resources */ = {isa = PBXBuildFile; fileRef = BF3EFA756F62332CFBAEF386 /* click_cowbell_accent.wav */; };
 		C61973B7BB7400057BAF83E4 /* click_hihat.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2BABD8ECD82FA9C13B64B687 /* click_hihat.wav */; };
+		b2c3d00e4f5a6b7c8d9e0f1a2 /* click_rim.wav in Resources */ = {isa = PBXBuildFile; fileRef = a1b2c00d3e4f5a6b7c8d9e0f1 /* click_rim.wav */; };
+		b2c3d01e4f5a6b7c8d9e0f1a2 /* click_clap.wav in Resources */ = {isa = PBXBuildFile; fileRef = a1b2c01d3e4f5a6b7c8d9e0f1 /* click_clap.wav */; };
+		b2c3d02e4f5a6b7c8d9e0f1a2 /* click_shaker.wav in Resources */ = {isa = PBXBuildFile; fileRef = a1b2c02d3e4f5a6b7c8d9e0f1 /* click_shaker.wav */; };
+		b2c3d03e4f5a6b7c8d9e0f1a2 /* click_kick.wav in Resources */ = {isa = PBXBuildFile; fileRef = a1b2c03d3e4f5a6b7c8d9e0f1 /* click_kick.wav */; };
+		b2c3d04e4f5a6b7c8d9e0f1a2 /* click_beep.wav in Resources */ = {isa = PBXBuildFile; fileRef = a1b2c04d3e4f5a6b7c8d9e0f1 /* click_beep.wav */; };
+		bb22003344556677889900 /* click_rim_accent.wav in Resources */ = {isa = PBXBuildFile; fileRef = aa11002233445566778899 /* click_rim_accent.wav */; };
+		bb22013344556677889900 /* click_clap_accent.wav in Resources */ = {isa = PBXBuildFile; fileRef = aa11012233445566778899 /* click_clap_accent.wav */; };
+		bb22023344556677889900 /* click_shaker_accent.wav in Resources */ = {isa = PBXBuildFile; fileRef = aa11022233445566778899 /* click_shaker_accent.wav */; };
+		bb22033344556677889900 /* click_kick_accent.wav in Resources */ = {isa = PBXBuildFile; fileRef = aa11032233445566778899 /* click_kick_accent.wav */; };
+		bb22043344556677889900 /* click_beep_accent.wav in Resources */ = {isa = PBXBuildFile; fileRef = aa11042233445566778899 /* click_beep_accent.wav */; };
 		C75C57AC167E9A66954AE073 /* ErrorState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2807C6743232CFE5A0D7CF68 /* ErrorState.swift */; };
 		C8AFED2550807637FB826107 /* TunerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C818ED98F52204671EFA44 /* TunerViewModel.swift */; };
 		CB50F1D5F220817B1752F759 /* TunerDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4397F6831289458F5D8EB1D6 /* TunerDisplay.swift */; };
@@ -99,6 +109,16 @@
 		2807C6743232CFE5A0D7CF68 /* ErrorState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorState.swift; sourceTree = "<group>"; };
 		29ADCAA27A14ED1E32EE69B0 /* CameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreview.swift; sourceTree = "<group>"; };
 		2BABD8ECD82FA9C13B64B687 /* click_hihat.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_hihat.wav; sourceTree = "<group>"; };
+		a1b2c00d3e4f5a6b7c8d9e0f1 /* click_rim.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_rim.wav; sourceTree = "<group>"; };
+		a1b2c01d3e4f5a6b7c8d9e0f1 /* click_clap.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_clap.wav; sourceTree = "<group>"; };
+		a1b2c02d3e4f5a6b7c8d9e0f1 /* click_shaker.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_shaker.wav; sourceTree = "<group>"; };
+		a1b2c03d3e4f5a6b7c8d9e0f1 /* click_kick.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_kick.wav; sourceTree = "<group>"; };
+		a1b2c04d3e4f5a6b7c8d9e0f1 /* click_beep.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_beep.wav; sourceTree = "<group>"; };
+		aa11002233445566778899 /* click_rim_accent.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_rim_accent.wav; sourceTree = "<group>"; };
+		aa11012233445566778899 /* click_clap_accent.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_clap_accent.wav; sourceTree = "<group>"; };
+		aa11022233445566778899 /* click_shaker_accent.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_shaker_accent.wav; sourceTree = "<group>"; };
+		aa11032233445566778899 /* click_kick_accent.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_kick_accent.wav; sourceTree = "<group>"; };
+		aa11042233445566778899 /* click_beep_accent.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_beep_accent.wav; sourceTree = "<group>"; };
 		2C4E58FC9D06E58392F42D8E /* DigitClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DigitClassifier.swift; sourceTree = "<group>"; };
 		a17e5c9b3d0f4e2a8b6c1d01 /* TabVisionAlgorithms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabVisionAlgorithms.swift; sourceTree = "<group>"; };
 		3C5F48B6B438F1C0B650AD04 /* click_woodblock.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_woodblock.wav; sourceTree = "<group>"; };
@@ -437,6 +457,16 @@
 				43C89CB3E2C73CDA1502DFB6 /* click_digital.wav */,
 				7CF7C4D1B0CDBF54D792D239 /* click_hihat_accent.wav */,
 				2BABD8ECD82FA9C13B64B687 /* click_hihat.wav */,
+				a1b2c00d3e4f5a6b7c8d9e0f1 /* click_rim.wav */,
+				a1b2c01d3e4f5a6b7c8d9e0f1 /* click_clap.wav */,
+				a1b2c02d3e4f5a6b7c8d9e0f1 /* click_shaker.wav */,
+				a1b2c03d3e4f5a6b7c8d9e0f1 /* click_kick.wav */,
+				a1b2c04d3e4f5a6b7c8d9e0f1 /* click_beep.wav */,
+				aa11002233445566778899 /* click_rim_accent.wav */,
+				aa11012233445566778899 /* click_clap_accent.wav */,
+				aa11022233445566778899 /* click_shaker_accent.wav */,
+				aa11032233445566778899 /* click_kick_accent.wav */,
+				aa11042233445566778899 /* click_beep_accent.wav */,
 				AC0277555365AC27ECC8ABA2 /* click_woodblock_accent.wav */,
 				3C5F48B6B438F1C0B650AD04 /* click_woodblock.wav */,
 			);
@@ -545,6 +575,16 @@
 				B6A385D07906C28AE0DD677D /* click_digital.wav in Resources */,
 				7AE2444FD40BAAF654FE501C /* click_digital_accent.wav in Resources */,
 				C61973B7BB7400057BAF83E4 /* click_hihat.wav in Resources */,
+				b2c3d00e4f5a6b7c8d9e0f1a2 /* click_rim.wav in Resources */,
+				b2c3d01e4f5a6b7c8d9e0f1a2 /* click_clap.wav in Resources */,
+				b2c3d02e4f5a6b7c8d9e0f1a2 /* click_shaker.wav in Resources */,
+				b2c3d03e4f5a6b7c8d9e0f1a2 /* click_kick.wav in Resources */,
+				b2c3d04e4f5a6b7c8d9e0f1a2 /* click_beep.wav in Resources */,
+				bb22003344556677889900 /* click_rim_accent.wav in Resources */,
+				bb22013344556677889900 /* click_clap_accent.wav in Resources */,
+				bb22023344556677889900 /* click_shaker_accent.wav in Resources */,
+				bb22033344556677889900 /* click_kick_accent.wav in Resources */,
+				bb22043344556677889900 /* click_beep_accent.wav in Resources */,
 				3A118C1AD581E72D5D9FE4E8 /* click_hihat_accent.wav in Resources */,
 				C0921A77E45FA0EAF61CF3E7 /* click_woodblock.wav in Resources */,
 				2D296B239A35AE9C02498508 /* click_woodblock_accent.wav in Resources */,

@@ -510,7 +510,6 @@
 			knownRegions = (
 				Base,
 				en,
-				ja,
 				zh,
 			);
 			mainGroup = 7B2BE1D4206926594AB511BC;

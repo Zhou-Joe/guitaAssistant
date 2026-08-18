@@ -4,13 +4,11 @@ import SwiftUI
 enum AppLanguage: String, CaseIterable {
     case english = "en"
     case chinese = "zh"
-    case japanese = "ja"
 
     var displayName: String {
         switch self {
         case .english: return "English"
         case .chinese: return "中文"
-        case .japanese: return "日本語"
         }
     }
 

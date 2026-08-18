@@ -10,12 +10,6 @@
       "value": "About"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "について"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -31,12 +25,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Add Measure"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "小節を追加"
      }
     },
     "zh": {
@@ -56,12 +44,6 @@
       "value": "AI Configuration"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "AI 設定"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -77,12 +59,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Enable AI"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "AI を有効化"
      }
     },
     "zh": {
@@ -102,12 +78,6 @@
       "value": "API Endpoint"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "API エンドポイント"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -123,12 +93,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "AI Features"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "AI 機能"
      }
     },
     "zh": {
@@ -148,12 +112,6 @@
       "value": "API Key"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "API キー"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -166,12 +124,6 @@
    "extractionState": "manual",
    "localizations": {
     "en": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "sk-..."
-     }
-    },
-    "ja": {
      "stringUnit": {
       "state": "translated",
       "value": "sk-..."
@@ -194,12 +146,6 @@
       "value": "Model"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "モデル"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -215,12 +161,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "AI is not configured. Please set it up in Settings first."
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "AIが未設定です。先に設定してください。"
      }
     },
     "zh": {
@@ -240,12 +180,6 @@
       "value": "AI returned an invalid response. Please retry."
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "AI応答が無効です。再試行してください。"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -261,12 +195,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Test Connection"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "接続テスト"
      }
     },
     "zh": {
@@ -286,12 +214,6 @@
       "value": "Connection failed"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "接続失敗"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -307,12 +229,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Connection successful"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "接続成功"
      }
     },
     "zh": {
@@ -332,12 +248,6 @@
       "value": "Testing..."
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "テスト中..."
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -353,12 +263,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Almost there..."
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "もう少し..."
      }
     },
     "zh": {
@@ -378,12 +282,6 @@
       "value": "Heatmap"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "ヒートマップ"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -399,12 +297,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Timeline"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "タイムライン"
      }
     },
     "zh": {
@@ -424,12 +316,6 @@
       "value": "Analysis"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "分析"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -445,12 +331,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Waveform"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "波形"
      }
     },
     "zh": {
@@ -470,12 +350,6 @@
       "value": "Analyze"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "分析"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -491,12 +365,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Analysis failed. The file may be unsupported or contain no audio."
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "分析に失敗しました。ファイルが未対応か音声がありません。"
      }
     },
     "zh": {
@@ -516,12 +384,6 @@
       "value": "Analyzing..."
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "分析中..."
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -537,12 +399,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Camera permission denied"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "カメラ権限が拒否されました"
      }
     },
     "zh": {
@@ -562,12 +418,6 @@
       "value": "Camera is not ready yet"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "カメラの準備ができていません"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -583,12 +433,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Cancel"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "キャンセル"
      }
     },
     "zh": {
@@ -608,12 +452,6 @@
       "value": "Custom chord"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "カスタムコード"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -629,12 +467,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Chords"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "コード"
      }
     },
     "zh": {
@@ -654,12 +486,6 @@
       "value": "Close"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "閉じる"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -675,12 +501,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Delete"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "削除"
      }
     },
     "zh": {
@@ -700,12 +520,6 @@
       "value": "Delete failed"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "削除に失敗"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -721,12 +535,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Delete Note"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "音符を削除"
      }
     },
     "zh": {
@@ -746,12 +554,6 @@
       "value": "Edit"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "編集"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -767,12 +569,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Fret %d — select new value or delete"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "フレット %d — 新しい値を選択または削除"
      }
     },
     "zh": {
@@ -792,12 +588,6 @@
       "value": "Edit Tab"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "TABを編集"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -813,12 +603,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Edited"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "編集済み"
      }
     },
     "zh": {
@@ -838,12 +622,6 @@
       "value": "Export"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "エクスポート"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -859,12 +637,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Favorites"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "お気に入り"
      }
     },
     "zh": {
@@ -884,12 +656,6 @@
       "value": "Failed to load file"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "ファイルの読み込みに失敗"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -905,12 +671,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "File not found"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "ファイルが見つかりません"
      }
     },
     "zh": {
@@ -930,12 +690,6 @@
       "value": "Timing accuracy per beat"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "拍ごとの精度"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -951,12 +705,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Image"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "画像"
      }
     },
     "zh": {
@@ -976,12 +724,6 @@
       "value": "Failed to encode image"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "画像エンコードに失敗"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -997,12 +739,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Import failed"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "インポートに失敗"
      }
     },
     "zh": {
@@ -1022,12 +758,6 @@
       "value": "Import Tab"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "楽譜をインポート"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1043,12 +773,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "In Tune!"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "チューニング完了！"
      }
     },
     "zh": {
@@ -1068,12 +792,6 @@
       "value": "Invalid URL"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "URLが無効です"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1089,12 +807,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Language"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "言語"
      }
     },
     "zh": {
@@ -1114,12 +826,6 @@
       "value": "The new language will take effect after restarting the app."
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "新しい言語はアプリの再起動後に反映されます。"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1135,12 +841,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Language Changed"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "言語を変更しました"
      }
     },
     "zh": {
@@ -1160,12 +860,6 @@
       "value": "Actually played"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "実際の演奏"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1181,12 +875,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Expected beats"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "期待される拍"
      }
     },
     "zh": {
@@ -1206,12 +894,6 @@
       "value": "Measure %d"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "小節 %d"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1227,12 +909,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Measures/row"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "行あたり小節"
      }
     },
     "zh": {
@@ -1252,12 +928,6 @@
       "value": "AI Only"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "AIのみ"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1273,12 +943,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "CV Only (offline)"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "CVのみ（オフライン）"
      }
     },
     "zh": {
@@ -1298,12 +962,6 @@
       "value": "Hybrid (CV + AI, recommended)"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "ハイブリッド（CV+AI、推奨）"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1319,12 +977,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Metronome"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "メトロノーム"
      }
     },
     "zh": {
@@ -1344,12 +996,6 @@
       "value": "Failed to load metronome sounds"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "メトロノーム音の読み込みに失敗"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1365,12 +1011,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Microphone permission denied"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "マイク権限が拒否されました"
      }
     },
     "zh": {
@@ -1390,12 +1030,6 @@
       "value": "Microphone unavailable"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "マイクを使用できません"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1411,12 +1045,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Mode"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "モード"
      }
     },
     "zh": {
@@ -1436,12 +1064,6 @@
       "value": "Annotated"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "注釈"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1457,12 +1079,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Audio"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "オーディオ"
      }
     },
     "zh": {
@@ -1482,12 +1098,6 @@
       "value": "Chords"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "コード"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1503,12 +1113,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Measures"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "小節"
      }
     },
     "zh": {
@@ -1528,12 +1132,6 @@
       "value": "Video"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "ビデオ"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1549,12 +1147,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "No chords recognized"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "コードが認識されませんでした"
      }
     },
     "zh": {
@@ -1574,12 +1166,6 @@
       "value": "No data"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "データなし"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1595,12 +1181,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "No measures recognized"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "小節が認識されませんでした"
      }
     },
     "zh": {
@@ -1620,12 +1200,6 @@
       "value": "Original image unavailable"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "元画像がありません"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1641,12 +1215,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "No recordings yet"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "録音がありません"
      }
     },
     "zh": {
@@ -1666,12 +1234,6 @@
       "value": "Press record to capture your playing"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "録音ボタンで演奏を記録"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1687,12 +1249,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "No tabs yet"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "楽譜がありません"
      }
     },
     "zh": {
@@ -1712,12 +1268,6 @@
       "value": "Import a PDF or image to get started"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "PDFや画像をインポートして開始"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1735,12 +1285,6 @@
       "value": "Notice"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "お知らせ"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1753,12 +1297,6 @@
    "extractionState": "manual",
    "localizations": {
     "en": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "OK"
-     }
-    },
-    "ja": {
      "stringUnit": {
       "state": "translated",
       "value": "OK"
@@ -1781,12 +1319,6 @@
       "value": "Open Settings"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "設定を開く"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1802,12 +1334,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Pause"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "一時停止"
      }
     },
     "zh": {
@@ -1827,12 +1353,6 @@
       "value": "Playback failed"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "再生に失敗"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1848,12 +1368,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Confidence: %d%%"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "信頼度：%d%%"
      }
     },
     "zh": {
@@ -1873,12 +1387,6 @@
       "value": "Recognition Failed"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "認識に失敗しました"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1894,12 +1402,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Recognizing with %@..."
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "%@で認識中..."
      }
     },
     "zh": {
@@ -1919,12 +1421,6 @@
       "value": "Paused"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "一時停止中"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1940,12 +1436,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Recording"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "録音"
      }
     },
     "zh": {
@@ -1965,12 +1455,6 @@
       "value": "Recording & Analysis"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "録音・分析"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -1986,12 +1470,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Recording could not be saved"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "録音を保存できませんでした"
      }
     },
     "zh": {
@@ -2011,12 +1489,6 @@
       "value": "Rename"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "名前変更"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2032,12 +1504,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Retry"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "再試行"
      }
     },
     "zh": {
@@ -2057,12 +1523,6 @@
       "value": "Sample TAB (G-Em-C-D)"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "サンプルTAB（G-Em-C-D）"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2078,12 +1538,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Sample TAB (C-Am-F-G)"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "サンプルTAB（C-Am-F-G）"
      }
     },
     "zh": {
@@ -2103,12 +1557,6 @@
       "value": "Save"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "保存"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2124,12 +1572,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Save failed"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "保存に失敗"
      }
     },
     "zh": {
@@ -2149,12 +1591,6 @@
       "value": "Saved"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "保存しました"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2170,12 +1606,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Search"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "検索"
      }
     },
     "zh": {
@@ -2195,12 +1625,6 @@
       "value": "Select Fret"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "フレットを選択"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2216,12 +1640,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Recognition Method"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "認識方式"
      }
     },
     "zh": {
@@ -2241,12 +1659,6 @@
       "value": "Settings"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "設定"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2262,12 +1674,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Share"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "共有"
      }
     },
     "zh": {
@@ -2287,12 +1693,6 @@
       "value": "Share as Image"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "画像で共有"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2308,12 +1708,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Check out my guitar tab!"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "ギターTAB譜をチェック！"
      }
     },
     "zh": {
@@ -2333,12 +1727,6 @@
       "value": "My guitar recording: %@"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "私のギター演奏：%@"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2354,12 +1742,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Share as Text"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "テキストで共有"
      }
     },
     "zh": {
@@ -2379,12 +1761,6 @@
       "value": "Sound"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "音色"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2400,12 +1776,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Classic"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "クラシック"
      }
     },
     "zh": {
@@ -2425,12 +1795,6 @@
       "value": "Cowbell"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "カウベル"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2446,12 +1810,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Digital"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "デジタル"
      }
     },
     "zh": {
@@ -2471,12 +1829,6 @@
       "value": "Hi-Hat"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "ハイハット"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2492,12 +1844,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Woodblock"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "木魚"
      }
     },
     "zh": {
@@ -2517,12 +1863,6 @@
       "value": "Start"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "開始"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2538,12 +1878,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Accuracy"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "精度"
      }
     },
     "zh": {
@@ -2563,12 +1897,6 @@
       "value": "Avg Deviation"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "平均偏差"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2584,12 +1912,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "On Beat"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "オンビート"
      }
     },
     "zh": {
@@ -2609,12 +1931,6 @@
       "value": "Stop"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "停止"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2630,12 +1946,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Stop and Save"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "停止して保存"
      }
     },
     "zh": {
@@ -2655,12 +1965,6 @@
       "value": "String %@"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "第%@弦"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2676,12 +1980,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Cards"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "カード"
      }
     },
     "zh": {
@@ -2701,12 +1999,6 @@
       "value": "Staff"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "TAB譜"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2722,12 +2014,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Tap Start to begin"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "開始をタップ"
      }
     },
     "zh": {
@@ -2747,12 +2033,6 @@
       "value": "Target BPM"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "目標 BPM"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2768,12 +2048,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Target: %@"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "目標: %@"
      }
     },
     "zh": {
@@ -2793,12 +2067,6 @@
       "value": "Tempo Mode"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "テンポモード"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2814,12 +2082,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Gradual"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "徐々に"
      }
     },
     "zh": {
@@ -2839,12 +2101,6 @@
       "value": "Interval"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "インターバル"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2860,12 +2116,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Manual"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "マニュアル"
      }
     },
     "zh": {
@@ -2885,12 +2135,6 @@
       "value": "Step"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "ステップ"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2906,12 +2150,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Text TAB"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "テキストTAB"
      }
     },
     "zh": {
@@ -2931,12 +2169,6 @@
       "value": "Time Signature"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "拍子"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2952,12 +2184,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Title"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "タイトル"
      }
     },
     "zh": {
@@ -2977,12 +2203,6 @@
       "value": "Too flat - tighten string"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "低すぎ - 弦を張る"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -2998,12 +2218,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Too sharp - loosen string"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "高すぎ - 弦を緩める"
      }
     },
     "zh": {
@@ -3023,12 +2237,6 @@
       "value": "Tuner"
      }
     },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "チューナー"
-     }
-    },
     "zh": {
      "stringUnit": {
       "state": "translated",
@@ -3041,12 +2249,6 @@
    "extractionState": "manual",
    "localizations": {
     "en": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "%@ 1.0.0"
-     }
-    },
-    "ja": {
      "stringUnit": {
       "state": "translated",
       "value": "%@ 1.0.0"
@@ -3067,12 +2269,6 @@
      "stringUnit": {
       "state": "translated",
       "value": "Video preview required"
-     }
-    },
-    "ja": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "ビデオプレビューが必要です"
      }
     },
     "zh": {

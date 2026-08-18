@@ -5,7 +5,6 @@ struct MetronomeView: View {
     @Environment(MetronomeEngine.self) private var engine
 
     @State private var showTimeSignature = false
-    @State private var showSoundStyle = false
     @State private var showTempoMode = false
 
     var body: some View {
@@ -28,14 +27,7 @@ struct MetronomeView: View {
                         ) {
                             timeSignatureOptions
                         }
-                        settingsCard(
-                            title: NSLocalizedString("sound", comment: ""),
-                            icon: "speaker.wave.2",
-                            value: engine.soundStyle.displayName,
-                            isExpanded: $showSoundStyle
-                        ) {
-                            soundStyleOptions
-                        }
+                        soundMenuCard
                     }
 
                     Spacer(minLength: 16)
@@ -201,27 +193,6 @@ struct MetronomeView: View {
         }
     }
 
-    /// 音色选项:紧凑网格 chip(10 项纵向列表太长)。
-    private var soundStyleOptions: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 76), spacing: 8)], spacing: 8) {
-            ForEach(SoundStyle.allCases, id: \.self) { style in
-                let selected = style == engine.soundStyle
-                Button {
-                    engine.setSoundStyle(style)
-                } label: {
-                    Text(style.displayName)
-                        .font(.caption.weight(selected ? .semibold : .regular))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                        .foregroundStyle(selected ? .white : AppColors.textSecondary)
-                        .frame(maxWidth: .infinity, minHeight: 34)
-                        .background(selected ? AppColors.cta : AppColors.surfaceElevated,
-                                    in: RoundedRectangle(cornerRadius: 10))
-                }
-            }
-        }
-    }
-
     private var tempoModeOptions: some View {
         VStack(spacing: 8) {
             ForEach(TempoMode.allCases, id: \.self) { mode in
@@ -256,6 +227,40 @@ struct MetronomeView: View {
                 .padding(.top, 4)
             }
         }
+    }
+
+    /// 音色卡片:点按弹出系统 Menu,不展开、不推移其它内容。
+    private var soundMenuCard: some View {
+        Menu {
+            ForEach(SoundStyle.allCases, id: \.self) { style in
+                Button {
+                    engine.setSoundStyle(style)
+                } label: {
+                    if style == engine.soundStyle {
+                        Label(style.displayName, systemImage: "checkmark")
+                    } else {
+                        Text(style.displayName)
+                    }
+                }
+            }
+        } label: {
+            HStack {
+                Image(systemName: "speaker.wave.2").foregroundStyle(AppColors.cta)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(NSLocalizedString("sound", comment: ""))
+                        .font(.caption).foregroundStyle(AppColors.textSecondary)
+                    Text(engine.soundStyle.displayName)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColors.textPrimary)
+                }
+                Spacer()
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption).foregroundStyle(AppColors.textMuted)
+            }
+        }
+        .menuIndicator(.hidden)
+        .padding()
+        .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 16))
     }
 
     // MARK: - 播放按钮

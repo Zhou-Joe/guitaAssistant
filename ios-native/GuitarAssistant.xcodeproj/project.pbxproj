@@ -10,6 +10,7 @@
 		0B330258DD51716230CA23DE /* sample_tab.png in Resources */ = {isa = PBXBuildFile; fileRef = 78D0E8DAF714558838A458F9 /* sample_tab.png */; };
 		174016EE9AA73AEF9855A212 /* LanguageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BA3131CD1EF6A45E3A6F452 /* LanguageManager.swift */; };
 		1ECA2C28C11E40EC4CFCEEC6 /* FrequencySmoother.swift in Sources */ = {isa = PBXBuildFile; fileRef = 516B27BBF01CADF1BD43D70D /* FrequencySmoother.swift */; };
+		b8f21d3e4f5a6b7c8d9e0a08 /* PitchTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = a7e10c2d3e4f5a6b7c8d9e07 /* PitchTracker.swift */; };
 		2290789863D20F0FA97CE3E8 /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E0E8B6786D04EDFE82EC746 /* AppConstants.swift */; };
 		24E0C23E87E0628D605703D0 /* ImageEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D770DE87A564F3A1575CDE85 /* ImageEncoder.swift */; };
 		2AABAA6984FD31ADAA7F7E2B /* sample_tab2.png in Resources */ = {isa = PBXBuildFile; fileRef = CF27372C28045C371DA78D95 /* sample_tab2.png */; };
@@ -110,6 +111,7 @@
 		43C89CB3E2C73CDA1502DFB6 /* click_digital.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_digital.wav; sourceTree = "<group>"; };
 		4720474898D8154EAA1B3C82 /* MetronomeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetronomeEngine.swift; sourceTree = "<group>"; };
 		516B27BBF01CADF1BD43D70D /* FrequencySmoother.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrequencySmoother.swift; sourceTree = "<group>"; };
+		a7e10c2d3e4f5a6b7c8d9e07 /* PitchTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PitchTracker.swift; sourceTree = "<group>"; };
 		5CAB33F9CA13EF74F671066D /* CardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardView.swift; sourceTree = "<group>"; };
 		5E8E0C8CFDCA9D85242D9039 /* AnalysisEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisEngine.swift; sourceTree = "<group>"; };
 		5EE7A9F7029CF424A469A924 /* TabRecognitionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabRecognitionEngine.swift; sourceTree = "<group>"; };
@@ -395,6 +397,7 @@
 				22B3D6A66F1F4EC4ABB12CB4 /* ChordLibrary.swift */,
 				2C4E58FC9D06E58392F42D8E /* DigitClassifier.swift */,
 				516B27BBF01CADF1BD43D70D /* FrequencySmoother.swift */,
+				a7e10c2d3e4f5a6b7c8d9e07 /* PitchTracker.swift */,
 				D2B21D88ED8C840346BB429D /* PitchDetector.swift */,
 				630BF27D4B9DFB5476EA3FE2 /* RhythmAnalyzer.swift */,
 				907D9534D025F72A13D7A744 /* TabScore.swift */,
@@ -589,6 +592,7 @@
 				C75C57AC167E9A66954AE073 /* ErrorState.swift in Sources */,
 				9EEE397222FC741D7EC82A1A /* FavoritesView.swift in Sources */,
 				1ECA2C28C11E40EC4CFCEEC6 /* FrequencySmoother.swift in Sources */,
+				b8f21d3e4f5a6b7c8d9e0a08 /* PitchTracker.swift in Sources */,
 				B6B4DB354D3CFA4C3CF583F8 /* GuitarAssistantApp.swift in Sources */,
 				24E0C23E87E0628D605703D0 /* ImageEncoder.swift in Sources */,
 				9D95468599E847B914AD7CCD /* InteractiveTabView.swift in Sources */,

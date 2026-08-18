@@ -1,6 +1,17 @@
 import Foundation
 import Accelerate
 
+/// 单帧的音高候选(来自 YIN CMND 的多个谷)。
+public struct PitchCandidate: Equatable {
+    public let frequency: Double
+    /// 0-1 可信度(谷越深越接近 1)。
+    public let probability: Double
+    public init(frequency: Double, probability: Double) {
+        self.frequency = frequency
+        self.probability = probability
+    }
+}
+
 /// 音高检测结果。
 public struct PitchResult: Equatable {
     /// 检测到的基频（Hz）；无法检测时为 nil。
@@ -94,6 +105,47 @@ public final class PitchDetector {
         detectWithClarity(samples: samples)?.frequency
     }
 
+    /// 提取多音高候选(pYIN 式):带通预滤波后取 CMND 的所有显著谷。
+    /// 返回按可信度降序(≤5 个)。无候选返回空(静音/噪声)。
+    public func detectCandidates(samples: [Float]) -> [PitchCandidate] {
+        let n = halfBufferSize
+        guard samples.count >= bufferSize else { return [] }
+        guard maxTau < n else { return [] }
+
+        // 带通预滤波(滤波器逐窗口重建,窗口头部有暂态,对周期检测影响可忽略)。
+        var hp = BiquadFilter.highPass(sampleRate: sampleRate, fc: 65)
+        var lp = BiquadFilter.lowPass(sampleRate: sampleRate, fc: 700)
+        var frameD = [Double](repeating: 0, count: bufferSize)
+        for i in 0..<bufferSize {
+            frameD[i] = lp.process(hp.process(Double(samples[i])))
+        }
+
+        var difference = [Double](repeating: 0, count: n)
+        differenceFunction(frame: frameD, halfSize: n, output: &difference)
+        var cumulative = [Double](repeating: 0, count: n)
+        cumulativeMeanNormalizedDifference(difference: difference, output: &cumulative)
+
+        // 收集 [minTau, maxTau) 内的局部极小谷,深度决定可信度。
+        var candidates: [PitchCandidate] = []
+        var tau = minTau + 1
+        while tau < maxTau - 1 {
+            let v = cumulative[tau]
+            if v < 0.45, v <= cumulative[tau - 1], v <= cumulative[tau + 1] {
+                let refined = parabolicInterpolation(cumulative: cumulative, tau: tau)
+                let freq = sampleRate / refined
+                if freq.isFinite, freq > 0 {
+                    let probability = min(1, max(0, (0.45 - v) / 0.35))
+                    candidates.append(PitchCandidate(frequency: freq, probability: probability))
+                }
+                tau += 2
+            } else {
+                tau += 1
+            }
+        }
+        candidates.sort { $0.probability > $1.probability }
+        return Array(candidates.prefix(5))
+    }
+
     /// 带清晰度的检测：返回 (频率, clarity)。clarity = YIN d'(τ) 谷值，
     /// 越低越可信（周期性强）；接近 1 表示不可信。
     public func detectWithClarity(samples: [Float]) -> (frequency: Double, clarity: Double)? {
@@ -101,12 +153,13 @@ public final class PitchDetector {
         guard samples.count >= bufferSize else { return nil }
         guard maxTau < n else { return nil }
 
-        // 取前 bufferSize 个点。
-        let frame = Array(samples.prefix(bufferSize))
+        // 取前 bufferSize 个点(转 Double,统一走双精度差分)。
+        var frameD = [Double](repeating: 0, count: bufferSize)
+        vDSP.convertElements(of: samples.prefix(bufferSize), to: &frameD)
 
         // 1) 差分函数 d(τ)
         var difference = [Double](repeating: 0, count: n)
-        differenceFunction(frame: frame, halfSize: n, output: &difference)
+        differenceFunction(frame: frameD, halfSize: n, output: &difference)
 
         // 2) 累积均值归一化 d'(τ)
         var cumulative = [Double](repeating: 0, count: n)
@@ -158,20 +211,58 @@ public final class PitchDetector {
                            clarity: detected.clarity)
     }
 
-    // MARK: - YIN 步骤
+    // MARK: - 候选(供 pYIN 式跟踪器)
+
+// MARK: - RBJ 双二阶带通(65-700Hz,吉他基频带)
+
+/// RBJ cookbook 双二阶滤波器。
+struct BiquadFilter {
+    var b0 = 0.0, b1 = 0.0, b2 = 0.0, a1 = 0.0, a2 = 0.0
+    private var x1 = 0.0, x2 = 0.0, y1 = 0.0, y2 = 0.0
+
+    static func highPass(sampleRate: Double, fc: Double) -> BiquadFilter {
+        var f = BiquadFilter()
+        let w0 = 2 * Double.pi * fc / sampleRate
+        let alpha = sin(w0) / (2 * 0.707)
+        f.setCoefficients(
+            b0n: (1 + cos(w0)) / 2, b1n: -(1 + cos(w0)), b2n: (1 + cos(w0)) / 2,
+            a0n: 1 + alpha, a1n: -2 * cos(w0), a2n: 1 - alpha)
+        return f
+    }
+
+    static func lowPass(sampleRate: Double, fc: Double) -> BiquadFilter {
+        var f = BiquadFilter()
+        let w0 = 2 * Double.pi * fc / sampleRate
+        let alpha = sin(w0) / (2 * 0.707)
+        f.setCoefficients(
+            b0n: (1 - cos(w0)) / 2, b1n: 1 - cos(w0), b2n: (1 - cos(w0)) / 2,
+            a0n: 1 + alpha, a1n: -2 * cos(w0), a2n: 1 - alpha)
+        return f
+    }
+
+    private mutating func setCoefficients(b0n: Double, b1n: Double, b2n: Double,
+                                          a0n: Double, a1n: Double, a2n: Double) {
+        b0 = b0n / a0n; b1 = b1n / a0n; b2 = b2n / a0n
+        a1 = a1n / a0n; a2 = a2n / a0n
+    }
+
+    mutating func process(_ x: Double) -> Double {
+        let y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2
+        x2 = x1; x1 = x; y2 = y1; y1 = y
+        return y
+    }
+}
+
+// MARK: - YIN 步骤
 
     /// 差分函数 d(τ) = Σ_{j=0}^{halfSize-τ-1} (x[j] - x[j+τ])²，τ = 0..halfSize-1。
     /// 窗口随 τ 递减（de Cheveigné & Kawahara 2002 原始形式之一），计算量约 halfSize²/2。
-    private func differenceFunction(frame: [Float], halfSize: Int, output: inout [Double]) {
-        // 转 Double 一次，避免内层反复转换。
-        var frameD = [Double](repeating: 0, count: frame.count)
-        vDSP.convertElements(of: frame, to: &frameD)
-
+    private func differenceFunction(frame: [Double], halfSize: Int, output: inout [Double]) {
         for tau in 0..<halfSize {
             var sum: Double = 0
             let limit = halfSize - tau
             for j in 0..<limit {
-                let delta = frameD[j] - frameD[j + tau]
+                let delta = frame[j] - frame[j + tau]
                 sum += delta * delta
             }
             output[tau] = sum

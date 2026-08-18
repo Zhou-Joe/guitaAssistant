@@ -27,9 +27,7 @@ final class TunerViewModel {
         didSet {
             // 切换目标弦清空平滑历史与滞回状态——派发到 processingQueue 避免与后台 process() 竞态。
             processingQueue.async { [weak self] in
-                self?.smoother.reset()
-                self?.stickyNote.reset()
-                self?.stickyString.reset()
+                self?.tracker.reset()
             }
         }
     }
@@ -40,13 +38,13 @@ final class TunerViewModel {
 
     // MARK: - 依赖
 
-    private let smoother = FrequencySmoother()
     private let processingQueue = DispatchQueue(label: "com.guitarassistant.pitch",
                                                  qos: .userInteractive)
-    // 自动模式滞回状态(仅在 processingQueue 上访问)。
-    // 确认 2 帧(≈0.2s):滤单帧毛刺,又不拖慢响应。
-    private var stickyNote = StickySelector(confirmFrames: 2)
-    private var stickyString = StickySelector(confirmFrames: 2)
+    /// mini-pYIN 跟踪器(仅在 processingQueue 上访问)。
+    private var tracker = PitchTracker()
+    /// 重叠帧滑窗:tank 2048,分析窗口 4096 → 帧率翻倍(~21.5fps)。
+    private var frameHistory = [Float]()
+    private var frameWindowSize = 0
     /// RMS 门限(线性幅值,约 -45dBFS):低于此值的帧视为瞬态/衰减噪声,丢弃。
     // 真机麦克风收吉他声压偏低,门限过严会连正常尾音都丢(表现为响应慢)。
     private let rmsGate: Float = pow(10, -50.0 / 20)
@@ -118,10 +116,9 @@ final class TunerViewModel {
             isEngineStarted = true
             isListening = true
             errorMessage = nil
+            frameHistory.removeAll()
             processingQueue.async { [weak self] in
-                self?.smoother.reset()
-                self?.stickyNote.reset()
-                self?.stickyString.reset()
+                self?.tracker.reset()
             }
         } catch {
             // 启动失败时移除已安装的 tap，保持状态干净。
@@ -143,10 +140,9 @@ final class TunerViewModel {
         cents = 0
         isInTune = false
         nearestStringIndex = -1
+        frameHistory.removeAll()
         processingQueue.async { [weak self] in
-            self?.smoother.reset()
-            self?.stickyNote.reset()
-            self?.stickyString.reset()
+            self?.tracker.reset()
         }
     }
 
@@ -155,14 +151,20 @@ final class TunerViewModel {
     private func process(buffer: AVAudioPCMBuffer, sampleRate: Double) {
         guard let channelData = buffer.floatChannelData?[0] else { return }
         let frameLength = Int(buffer.frameLength)
-        // 拷贝到独立数组（buffer 会被复用）。
         let samples = Array(UnsafeBufferPointer(start: channelData, count: frameLength))
-        guard samples.count >= AppConstants.tunerBufferSize else { return }
+        guard !samples.isEmpty else { return }
 
-        // RMS 能量门限：拨弦瞬态与尾音衰减期的低能量帧会输出幽灵频率，直接丢弃
-        // （保持上次显示，避免读数/音名跳变）。
-        let energy = vDSP.dot(samples, samples)
-        let rms = (energy / Float(samples.count)).squareRoot()
+        // 重叠帧滑窗:tank 2048、分析窗口 4096(重叠 50%)→ 帧率 ~21.5fps,
+        // 所有响应延迟减半。
+        if frameWindowSize == 0 { frameWindowSize = samples.count * 2 }
+        frameHistory.append(contentsOf: samples)
+        let drop = frameHistory.count - frameWindowSize
+        if drop > 0 { frameHistory.removeFirst(drop) }
+        guard frameHistory.count >= frameWindowSize else { return }
+
+        // RMS 能量门限:带内尾音保留,静音底噪丢弃。
+        let energy = vDSP.dot(frameHistory, frameHistory)
+        let rms = (energy / Float(frameHistory.count)).squareRoot()
         guard rms.isFinite, rms > rmsGate else { return }
 
         // 按实际采样率构造检测器（缓存，避免每帧重建）。
@@ -173,16 +175,14 @@ final class TunerViewModel {
         guard let detector = runtimeDetector else { return }
 
         let target = self.selectedStringIndex
+        let window = frameHistory
         processingQueue.async { [weak self] in
             guard let self else { return }
-            let result = detector.detect(samples: samples, targetStringIndex: target)
-            guard let freq = result.frequency else {
-                // 未检测到，保持上次显示（不强制清零，避免读数闪烁）。
-                return
-            }
-            guard let smoothed = self.smoother.process(freq) else { return }
+            // mini-pYIN:多候选 → 跟踪器打分 → 平滑可信的频率。
+            let candidates = detector.detectCandidates(samples: window)
+            let tracked = self.tracker.update(candidates: candidates)
+            guard let smoothed = tracked.frequency else { return }
 
-            // 重新计算展示值（用平滑后频率）。
             let displayCents: Double
             let displayNote: String
             let displayInTune: Bool
@@ -194,23 +194,12 @@ final class TunerViewModel {
                 displayNote = AppConstants.guitarStringNotes[target]
                 nearest = target
             } else {
-                // 自动模式:音名/弦选择走滞回,消除边界抖动导致的频繁跳变。
-                // - 音名:当前音 ±60 音分内保持;新音需连续 3 帧一致才切换。
-                // - 弦高亮:当前弦 ±120 音分内保持;新弦需连续 3 帧一致才切换。
+                // 跟踪器自带"粘性"(转移代价),音名/弦直接从跟踪频率导出。
                 let semitones = 12.0 * log2(smoothed / 440.0)
-                let rawNote = Int(semitones.rounded())
-                let noteHold = self.stickyNote.stable >= 0
-                    && abs((semitones - Double(self.stickyNote.stable)) * 100.0) <= 60
-                let noteIdx = self.stickyNote.update(rawNote, hold: noteHold)
-                let displayIdx = noteIdx >= 0 ? noteIdx : rawNote
-                displayNote = PitchDetector.noteName(forSemitoneIndex: displayIdx)
-                displayCents = max(-50, min(50, (semitones - Double(displayIdx)) * 100.0))
-
-                let rawString = detector.nearestStringIndex(for: smoothed)
-                let stringHold = self.stickyString.stable >= 0
-                    && abs(1200.0 * log2(smoothed / AppConstants.guitarStringFrequencies[self.stickyString.stable])) <= 120
-                let stringIdx = self.stickyString.update(rawString, hold: stringHold)
-                nearest = stringIdx >= 0 ? stringIdx : rawString
+                let noteIdx = Int(semitones.rounded())
+                displayNote = PitchDetector.noteName(forSemitoneIndex: noteIdx)
+                displayCents = max(-50, min(50, (semitones - Double(noteIdx)) * 100.0))
+                nearest = detector.nearestStringIndex(for: smoothed)
             }
             displayInTune = abs(displayCents) <= AppConstants.defaultTunerTolerance
 

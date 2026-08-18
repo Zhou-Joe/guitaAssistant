@@ -148,5 +148,99 @@ do {
     _ = d3
 }
 
+
+// MARK: - 5. PitchTracker(mini-pYIN)
+
+func cand(_ f: Double, _ p: Double) -> PitchCandidate {
+    PitchCandidate(frequency: f, probability: p)
+}
+func centsOff(_ a: Double, _ b: Double) -> Double { 1200.0 * log2(a / b) }
+
+do {
+    let tracker = PitchTracker()
+    // 稳定跟踪:带抖动的 D3 候选流。
+    var out = tracker.update(candidates: [])
+    for i in 0..<10 {
+        out = tracker.update(candidates: [cand(146.83 * pow(2, Double((i % 3) - 1) * 8 / 1200), 0.9),
+                                          cand(293.66, 0.4)])
+    }
+    check("tracker 稳定跟踪 D3", out.frequency != nil && abs(centsOff(out.frequency!, 146.83)) < 20,
+          "out=\(out.frequency.map { String(format: "%.1f", $0) } ?? "nil")")
+}
+
+do {
+    // 新弦接管:稳定 D3 后换 A2,应在 ≤3 帧内切换。
+    let tracker = PitchTracker()
+    for _ in 0..<10 { _ = tracker.update(candidates: [cand(146.83, 0.9)]) }
+    var switched = -1
+    for i in 0..<6 {
+        let out = tracker.update(candidates: [cand(110.0, 0.9)])
+        if out.frequency != nil, abs(centsOff(out.frequency!, 110)) < 20 { switched = i; break }
+    }
+    check("tracker 新弦 3 帧内接管", switched >= 0 && switched <= 2, "switched=\(switched)")
+}
+
+do {
+    // 八度闪跳:单帧 2×D3(即便高可信)不夺走跟踪。
+    let tracker = PitchTracker()
+    for _ in 0..<10 { _ = tracker.update(candidates: [cand(146.83, 0.9)]) }
+    let out = tracker.update(candidates: [cand(293.66, 0.95)])
+    check("tracker 八度闪跳被抑制", out.frequency != nil && abs(centsOff(out.frequency!, 146.83)) < 20,
+          "out=\(out.frequency ?? 0)")
+    // 两帧高可信八度仍会切换(真实八度错误持续存在时应跟随)。
+    _ = tracker.update(candidates: [cand(293.66, 0.95)])
+    let out2 = tracker.update(candidates: [cand(293.66, 0.95)])
+    check("tracker 持续八度最终切换", out2.frequency != nil && abs(centsOff(out2.frequency!, 293.66)) < 25,
+          "out=\(out2.frequency ?? 0)")
+}
+
+do {
+    // 瞬态乱值:低可信远距候选被剔除。
+    let tracker = PitchTracker()
+    for _ in 0..<10 { _ = tracker.update(candidates: [cand(196.0, 0.9)]) }
+    let out = tracker.update(candidates: [cand(95.0, 0.3), cand(310.0, 0.35)])
+    check("tracker 瞬态乱值被剔除", out.frequency != nil && abs(centsOff(out.frequency!, 196.0)) < 25,
+          "out=\(out.frequency ?? 0)")
+}
+
+do {
+    // 无声保持与释放。
+    let tracker = PitchTracker()
+    for _ in 0..<10 { _ = tracker.update(candidates: [cand(146.83, 0.9)]) }
+    let hold = tracker.update(candidates: [])
+    check("tracker 无声短暂保持", hold.frequency != nil)
+    var release: PitchTracker.Output?
+    for _ in 0..<12 { release = tracker.update(candidates: []) }
+    check("tracker 长静音释放为无频", release?.frequency == nil)
+}
+
+// MARK: - 6. 多候选提取(真实信号 + 带通)
+
+do {
+    let det = PitchDetector(sampleRate: 44100)
+    let e2 = synth(f0: 82.41)
+    let cands = det.detectCandidates(samples: e2)
+    check("E2 候选非空", !cands.isEmpty, "count=\(cands.count)")
+    let best = cands.first
+    check("E2 最优候选 ≈82.4Hz", best != nil && abs(centsOff(best!.frequency, 82.41)) < 10,
+          "best=\(best.map { String(format: "%.1f(p%.2f)", $0.frequency, $0.probability) } ?? "nil")")
+}
+
+do {
+    // 带通:混入 30Hz + 2kHz 强噪声,主候选仍应命中 G3。
+    let det = PitchDetector(sampleRate: 44100)
+    let noisy = (0..<4096).map { i -> Float in
+        let t = Double(i) / 44100.0
+        let g3 = sin(2 * .pi * 196.0 * t) + 0.5 * sin(4 * .pi * 196.0 * t)
+        let rumble = 0.9 * sin(2 * .pi * 30.0 * t)
+        let hiss = 0.7 * sin(2 * .pi * 2000.0 * t)
+        return Float(g3 + rumble + hiss)
+    }
+    let cands = det.detectCandidates(samples: noisy)
+    let best = cands.first
+    check("带通抗噪 G3 主候选", best != nil && abs(centsOff(best!.frequency, 196.0)) < 10,
+          "best=\(best.map { String(format: "%.1f", $0.frequency) } ?? "nil")")
+}
+
 print("\n通过 \(passed),失败 \(failures)")
 exit(failures == 0 ? 0 : 1)

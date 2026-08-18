@@ -64,6 +64,8 @@ struct MainTabView: View {
                     .padding(.bottom, 88)
             }
         }
+        // 系统 UI(导航/Tab 栏、键盘等)跟随应用内主题。
+        .preferredColorScheme(AppColors.mode == .dark ? .dark : .light)
         .onOpenURL { url in
             // guitarassistant://recording / guitarassistant://aiConfig
             deepLink = DeepLink(rawValue: url.host ?? "")

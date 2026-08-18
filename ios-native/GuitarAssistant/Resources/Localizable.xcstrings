@@ -2160,6 +2160,91 @@
     }
    }
   },
+  "theme": {
+   "extractionState": "manual",
+   "localizations": {
+    "en": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "Theme"
+     }
+    },
+    "zh": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "主题"
+     }
+    }
+   }
+  },
+  "theme_dark": {
+   "extractionState": "manual",
+   "localizations": {
+    "en": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "Dark"
+     }
+    },
+    "zh": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "夜间模式"
+     }
+    }
+   }
+  },
+  "theme_hint": {
+   "extractionState": "manual",
+   "localizations": {
+    "en": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "Restart the app to apply the new theme."
+     }
+    },
+    "zh": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "重启应用后主题生效。"
+     }
+    }
+   }
+  },
+  "theme_hint_title": {
+   "extractionState": "manual",
+   "localizations": {
+    "en": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "Theme Changed"
+     }
+    },
+    "zh": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "主题已切换"
+     }
+    }
+   }
+  },
+  "theme_light": {
+   "extractionState": "manual",
+   "localizations": {
+    "en": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "Light"
+     }
+    },
+    "zh": {
+     "stringUnit": {
+      "state": "translated",
+      "value": "正常模式"
+     }
+    }
+   }
+  },
   "time_signature": {
    "extractionState": "manual",
    "localizations": {

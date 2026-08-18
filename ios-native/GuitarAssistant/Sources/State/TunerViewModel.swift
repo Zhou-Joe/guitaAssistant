@@ -44,10 +44,12 @@ final class TunerViewModel {
     private let processingQueue = DispatchQueue(label: "com.guitarassistant.pitch",
                                                  qos: .userInteractive)
     // 自动模式滞回状态(仅在 processingQueue 上访问)。
-    private var stickyNote = StickySelector(confirmFrames: 3)
-    private var stickyString = StickySelector(confirmFrames: 3)
+    // 确认 2 帧(≈0.2s):滤单帧毛刺,又不拖慢响应。
+    private var stickyNote = StickySelector(confirmFrames: 2)
+    private var stickyString = StickySelector(confirmFrames: 2)
     /// RMS 门限(线性幅值,约 -45dBFS):低于此值的帧视为瞬态/衰减噪声,丢弃。
-    private let rmsGate: Float = pow(10, -45.0 / 20)
+    // 真机麦克风收吉他声压偏低,门限过严会连正常尾音都丢(表现为响应慢)。
+    private let rmsGate: Float = pow(10, -50.0 / 20)
 
     // MARK: - 音频引擎
 

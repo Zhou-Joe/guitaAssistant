@@ -27,9 +27,9 @@ public final class FrequencySmoother {
     private var candidate: Double = 0
     private var candidateCount: Int = 0
 
-    public init(windowSize: Int = 7,
+    public init(windowSize: Int = 5,
                 stringChangeCents: Double = 250,
-                jumpConfirmFrames: Int = 4,
+                jumpConfirmFrames: Int = 3,
                 jumpToleranceCents: Double = 80,
                 minFrequency: Double = AppConstants.guitarMinFrequency,
                 maxFrequency: Double = AppConstants.guitarMaxFrequency) {

@@ -57,7 +57,8 @@ struct MainTabView: View {
         }
         // 录音/分析作为收藏页的入口或独立导航；此处暂以节拍器悬浮窗为例保留联动。
         .overlay(alignment: .bottomTrailing) {
-            if selectedTab != 1 {
+            // 悬浮节拍器仅在收藏页显示(曲谱播放需要);调音/节拍器/设置页不打扰。
+            if selectedTab == 2 {
                 MinimizedMetronome()
                     .padding(.trailing, 16)
                     .padding(.bottom, 88)

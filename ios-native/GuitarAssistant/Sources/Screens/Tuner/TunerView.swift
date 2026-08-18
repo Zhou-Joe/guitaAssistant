@@ -74,9 +74,6 @@ struct TunerView: View {
         Text(message)
             .font(.callout)
             .foregroundStyle(statusColor)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 6)
-            .background(AppColors.surface.opacity(0.92), in: Capsule())
     }
 
     private var message: String {

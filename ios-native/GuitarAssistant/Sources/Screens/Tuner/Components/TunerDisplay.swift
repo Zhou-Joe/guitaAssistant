@@ -67,42 +67,39 @@ struct TunerMeterBar: View {
     var body: some View {
         let clamped = max(-50, min(50, cents))
         let offset = (clamped / 50.0) * 120   // ±120pt 满量程
-        // 单一胶囊即仪表:轨道即背景,刻度全部收在胶囊内部,
-        // 不再额外垫卡片(避免出现突兀的色带)。
-        ZStack {
-            Capsule()
-                .fill(AppColors.surfaceElevated.opacity(0.92))
-                .frame(width: 312, height: 52)
-            // 中央"准"标记。
-            Capsule()
-                .fill(AppColors.cta.opacity(0.9))
-                .frame(width: 3, height: 34)
-                .offset(y: -4)
-            // 指针。
-            Circle()
-                .fill(indicatorColor)
-                .frame(width: 16, height: 16)
-                .shadow(color: indicatorColor.opacity(0.5), radius: 6)
-                .offset(x: offset, y: -6)
-            // 两端升降号(垂直居中)。
+        // 无底板仪表:细线轨道 + 浮动刻度/指针。
+        // 底部区域是纯页面背景(琴颈已提前渐隐),主题文字色直接可读,
+        // 不需要任何胶囊/卡片衬托——也就没有色带。
+        VStack(spacing: 6) {
+            ZStack {
+                // 细轨道。
+                Capsule()
+                    .fill(AppColors.surfaceElevated.opacity(0.55))
+                    .frame(width: 280, height: 3)
+                // 中央"准"标记。
+                Capsule()
+                    .fill(AppColors.cta)
+                    .frame(width: 3, height: 16)
+                // 指针。
+                Circle()
+                    .fill(indicatorColor)
+                    .frame(width: 14, height: 14)
+                    .shadow(color: indicatorColor.opacity(0.5), radius: 5)
+                    .offset(x: offset)
+            }
+            .frame(height: 20)
+            // 刻度行。
             HStack {
-                Text("♭").font(.caption).foregroundStyle(AppColors.textSecondary)
+                Text("♭").font(.caption2).foregroundStyle(AppColors.textSecondary)
                 Spacer()
-                Text("♯").font(.caption).foregroundStyle(AppColors.textSecondary)
-            }
-            .frame(width: 296)
-            // 底缘刻度(在胶囊内,读数对比由轨道色保证)。
-            HStack(spacing: 0) {
                 Text("-50").font(.caption2).foregroundStyle(AppColors.textSecondary)
-                Spacer()
-                Text("0").font(.caption2).foregroundStyle(AppColors.cta)
-                Spacer()
+                Text("0").font(.caption2.weight(.semibold)).foregroundStyle(AppColors.cta)
                 Text("+50").font(.caption2).foregroundStyle(AppColors.textSecondary)
+                Spacer()
+                Text("♯").font(.caption2).foregroundStyle(AppColors.textSecondary)
             }
-            .frame(width: 280)
-            .offset(y: 16)
+            .frame(width: 300)
         }
-        .frame(height: 56)
         .animation(.easeOut(duration: 0.1), value: cents)
     }
 

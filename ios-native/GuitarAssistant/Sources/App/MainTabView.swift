@@ -4,6 +4,8 @@ import SwiftUI
 /// 节拍器在其它 Tab 上以悬浮窗形式常驻（Flutter 版 MinimizedMetronome 行为）。
 struct MainTabView: View {
     // 支持 launch argument 指定初始 tab，便于验证（如 -initialTab metronome）。
+    /// 主题管理(body 内读取 mode 以建立观察依赖)。
+    private let theme = ThemeManager.shared
     @State private var selectedTab: Int = {
         let args = ProcessInfo.processInfo.arguments
         if let idx = args.firstIndex(of: "-initialTab"), idx + 1 < args.count {
@@ -64,8 +66,10 @@ struct MainTabView: View {
                     .padding(.bottom, 88)
             }
         }
-        // 系统 UI(导航/Tab 栏、键盘等)跟随应用内主题。
-        .preferredColorScheme(AppColors.mode == .dark ? .dark : .light)
+        // 系统 UI(导航/Tab 栏、键盘等)跟随应用内主题;
+        // .id(mode) 让主题切换时整树重建——所有 AppColors 即时重算,免重启换肤。
+        .id(theme.mode)
+        .preferredColorScheme(theme.mode == .dark ? .dark : .light)
         .onOpenURL { url in
             // guitarassistant://recording / guitarassistant://aiConfig
             deepLink = DeepLink(rawValue: url.host ?? "")

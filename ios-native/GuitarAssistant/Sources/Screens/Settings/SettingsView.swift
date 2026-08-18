@@ -4,7 +4,6 @@ import SwiftUI
 struct SettingsView: View {
     @State private var languageManager = LanguageManager.shared
     @State private var showLanguageHint = false
-    @State private var showThemeHint = false
     @State private var themeMode: AppThemeMode = AppColors.mode
     // deep link 绑定（来自 MainTabView，用于验证二级页面）。
     @Binding var deepLink: DeepLink?
@@ -45,8 +44,7 @@ struct SettingsView: View {
                     Button {
                         if themeMode != mode {
                             themeMode = mode
-                            AppColors.setMode(mode)
-                            showThemeHint = true
+                            ThemeManager.shared.mode = mode   // 即时生效,免重启
                         }
                     } label: {
                         HStack {
@@ -113,12 +111,7 @@ struct SettingsView: View {
         } message: {
             Text(NSLocalizedString("language_hint", comment: ""))
         }
-        .alert(NSLocalizedString("theme_hint_title", comment: ""),
-               isPresented: $showThemeHint) {
-            Button(NSLocalizedString("ok", comment: ""), role: .cancel) {}
-        } message: {
-            Text(NSLocalizedString("theme_hint", comment: ""))
-        }
+
         // deep link 驱动二级页面导航（用于验证）。
         .navigationDestination(item: $deepLink) { link in
             switch link {

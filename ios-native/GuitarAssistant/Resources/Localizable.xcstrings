@@ -2200,30 +2200,13 @@
     "en": {
      "stringUnit": {
       "state": "translated",
-      "value": "Restart the app to apply the new theme."
+      "value": "Takes effect immediately."
      }
     },
     "zh": {
      "stringUnit": {
       "state": "translated",
-      "value": "重启应用后主题生效。"
-     }
-    }
-   }
-  },
-  "theme_hint_title": {
-   "extractionState": "manual",
-   "localizations": {
-    "en": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "Theme Changed"
-     }
-    },
-    "zh": {
-     "stringUnit": {
-      "state": "translated",
-      "value": "主题已切换"
+      "value": "切换后立即生效。"
      }
     }
    }

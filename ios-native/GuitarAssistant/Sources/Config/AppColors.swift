@@ -15,17 +15,22 @@ enum AppThemeMode: String, CaseIterable {
 
 /// 应用配色。迁移自 Flutter 版 `lib/config/theme.dart` 的 `AppColors`。
 /// 双主题:所有颜色为计算属性,按启动时读取的主题模式解析(切换后重启生效)。
-enum AppColors {
-    private static let themeKey = "appTheme"
-    /// 当前主题(启动时读取,默认夜间)。
-    static var mode: AppThemeMode {
-        AppThemeMode(rawValue: UserDefaults.standard.string(forKey: themeKey) ?? "") ?? .dark
+@Observable
+final class ThemeManager {
+    static let shared = ThemeManager()
+    /// 当前主题;变更即时持久化,配合根视图 .id(mode) 整树重建实现即时换肤。
+    var mode: AppThemeMode {
+        didSet { UserDefaults.standard.set(mode.rawValue, forKey: "appTheme") }
     }
 
-    /// 切换主题(持久化;重启后生效)。
-    static func setMode(_ newMode: AppThemeMode) {
-        UserDefaults.standard.set(newMode.rawValue, forKey: themeKey)
+    private init() {
+        mode = AppThemeMode(rawValue: UserDefaults.standard.string(forKey: "appTheme") ?? "") ?? .dark
     }
+}
+
+enum AppColors {
+    /// 当前主题(默认夜间)。
+    static var mode: AppThemeMode { ThemeManager.shared.mode }
 
     // MARK: - 语义色(夜间 / 日间)
 

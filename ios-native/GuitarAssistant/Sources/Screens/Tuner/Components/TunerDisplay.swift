@@ -67,39 +67,42 @@ struct TunerMeterBar: View {
     var body: some View {
         let clamped = max(-50, min(50, cents))
         let offset = (clamped / 50.0) * 120   // ±120pt 满量程
-        // 自带主题底色的卡片:不依赖底下是木纹还是页面背景,两主题都可读。
-        VStack(spacing: 2) {
-            ZStack {
-                Capsule()
-                    .fill(AppColors.surfaceElevated.opacity(0.9))
-                    .frame(width: 300, height: 40)
-                // 中央"准"标记。
-                Capsule()
-                    .fill(AppColors.cta.opacity(0.9))
-                    .frame(width: 3, height: 28)
-                // 指针。
-                Circle()
-                    .fill(indicatorColor)
-                    .frame(width: 16, height: 16)
-                    .shadow(color: indicatorColor.opacity(0.5), radius: 6)
-                    .offset(x: offset)
-                // 两端提示与刻度(压在胶囊两端上方)。
-                HStack {
-                    Text("♭").font(.caption).foregroundStyle(AppColors.textSecondary)
-                    Spacer()
-                    Text("-50").font(.caption2).foregroundStyle(AppColors.textSecondary)
-                    Text("0").font(.caption2).foregroundStyle(AppColors.cta)
-                    Text("+50").font(.caption2).foregroundStyle(AppColors.textSecondary)
-                    Spacer()
-                    Text("♯").font(.caption).foregroundStyle(AppColors.textSecondary)
-                }
-                .frame(width: 320)
-                .offset(y: 24)
+        // 单一胶囊即仪表:轨道即背景,刻度全部收在胶囊内部,
+        // 不再额外垫卡片(避免出现突兀的色带)。
+        ZStack {
+            Capsule()
+                .fill(AppColors.surfaceElevated.opacity(0.92))
+                .frame(width: 312, height: 52)
+            // 中央"准"标记。
+            Capsule()
+                .fill(AppColors.cta.opacity(0.9))
+                .frame(width: 3, height: 34)
+                .offset(y: -4)
+            // 指针。
+            Circle()
+                .fill(indicatorColor)
+                .frame(width: 16, height: 16)
+                .shadow(color: indicatorColor.opacity(0.5), radius: 6)
+                .offset(x: offset, y: -6)
+            // 两端升降号(垂直居中)。
+            HStack {
+                Text("♭").font(.caption).foregroundStyle(AppColors.textSecondary)
+                Spacer()
+                Text("♯").font(.caption).foregroundStyle(AppColors.textSecondary)
             }
+            .frame(width: 296)
+            // 底缘刻度(在胶囊内,读数对比由轨道色保证)。
+            HStack(spacing: 0) {
+                Text("-50").font(.caption2).foregroundStyle(AppColors.textSecondary)
+                Spacer()
+                Text("0").font(.caption2).foregroundStyle(AppColors.cta)
+                Spacer()
+                Text("+50").font(.caption2).foregroundStyle(AppColors.textSecondary)
+            }
+            .frame(width: 280)
+            .offset(y: 16)
         }
-        .padding(.horizontal, 12)
-        .padding(.bottom, 14)
-        .background(AppColors.surface.opacity(0.92), in: RoundedRectangle(cornerRadius: 22))
+        .frame(height: 56)
         .animation(.easeOut(duration: 0.1), value: cents)
     }
 

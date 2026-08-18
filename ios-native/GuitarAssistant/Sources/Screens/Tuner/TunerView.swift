@@ -74,7 +74,9 @@ struct TunerView: View {
         Text(message)
             .font(.callout)
             .foregroundStyle(statusColor)
-            .shadow(color: .black.opacity(0.4), radius: 3, y: 1)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .background(AppColors.surface.opacity(0.92), in: Capsule())
     }
 
     private var message: String {
@@ -88,8 +90,8 @@ struct TunerView: View {
 
     private var statusColor: Color {
         if viewModel.isInTune && viewModel.isListening { return AppColors.cta }
-        if !viewModel.isListening { return AppColors.textMuted }
-        return AppColors.textSecondary
+        if !viewModel.isListening { return AppColors.textSecondary }
+        return AppColors.textPrimary
     }
 
     // MARK: - Start/Stop

@@ -20,19 +20,19 @@ struct TunerDisplay: View {
             if frequency > 0 {
                 Text(String(format: "%.1f Hz", frequency))
                     .font(.subheadline)
-                    .foregroundStyle(AppColors.textSecondary)
+                    .foregroundStyle(.white.opacity(0.75))
                     .monospacedDigit()
             } else {
                 Text("—")
                     .font(.subheadline)
-                    .foregroundStyle(AppColors.textMuted)
+                    .foregroundStyle(.white.opacity(0.55))
             }
 
             // 选中模式:显示目标音名;自动模式:显示检测到的弦号。
             if let selectedStringNote {
                 Text(String(format: NSLocalizedString("target_format", comment: ""), selectedStringNote))
                     .font(.caption)
-                    .foregroundStyle(AppColors.textMuted)
+                    .foregroundStyle(.white.opacity(0.8))
                     .padding(.horizontal, 12)
                     .padding(.vertical, 4)
                     .background(.black.opacity(0.35), in: Capsule())
@@ -43,7 +43,7 @@ struct TunerDisplay: View {
                     .foregroundStyle(AppColors.warning)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 4)
-                    .background(.black.opacity(0.35), in: Capsule())
+                    .background(.black.opacity(0.45), in: Capsule())
             }
         }
         .frame(maxWidth: .infinity)
@@ -53,9 +53,10 @@ struct TunerDisplay: View {
         selectedStringNote ?? detectedNote
     }
 
+    /// 音名压在琴头木面上(任何主题下木面都是深色),固定浅色保证对比。
     private var noteColor: Color {
-        guard isListening else { return AppColors.textSecondary }
-        return isInTune ? AppColors.cta : AppColors.textPrimary
+        guard isListening else { return .white.opacity(0.72) }
+        return isInTune ? AppColors.cta : .white
     }
 }
 
@@ -66,34 +67,39 @@ struct TunerMeterBar: View {
     var body: some View {
         let clamped = max(-50, min(50, cents))
         let offset = (clamped / 50.0) * 120   // ±120pt 满量程
-        ZStack {
-            Capsule()
-                .fill(AppColors.surface.opacity(0.85))
-                .frame(width: 300, height: 40)
-            // 中央"准"标记。
-            Capsule()
-                .fill(AppColors.cta.opacity(0.9))
-                .frame(width: 3, height: 28)
-            // 指针。
-            Circle()
-                .fill(indicatorColor)
-                .frame(width: 16, height: 16)
-                .shadow(color: indicatorColor.opacity(0.5), radius: 6)
-                .offset(x: offset)
-            // 两端提示与刻度。
-            HStack {
-                Text("♭").font(.caption).foregroundStyle(AppColors.textMuted)
-                Spacer()
-                Text("-50").font(.caption2).foregroundStyle(AppColors.textMuted)
-                Text("0").font(.caption2).foregroundStyle(AppColors.cta)
-                Text("+50").font(.caption2).foregroundStyle(AppColors.textMuted)
-                Spacer()
-                Text("♯").font(.caption).foregroundStyle(AppColors.textMuted)
+        // 自带主题底色的卡片:不依赖底下是木纹还是页面背景,两主题都可读。
+        VStack(spacing: 2) {
+            ZStack {
+                Capsule()
+                    .fill(AppColors.surfaceElevated.opacity(0.9))
+                    .frame(width: 300, height: 40)
+                // 中央"准"标记。
+                Capsule()
+                    .fill(AppColors.cta.opacity(0.9))
+                    .frame(width: 3, height: 28)
+                // 指针。
+                Circle()
+                    .fill(indicatorColor)
+                    .frame(width: 16, height: 16)
+                    .shadow(color: indicatorColor.opacity(0.5), radius: 6)
+                    .offset(x: offset)
+                // 两端提示与刻度(压在胶囊两端上方)。
+                HStack {
+                    Text("♭").font(.caption).foregroundStyle(AppColors.textSecondary)
+                    Spacer()
+                    Text("-50").font(.caption2).foregroundStyle(AppColors.textSecondary)
+                    Text("0").font(.caption2).foregroundStyle(AppColors.cta)
+                    Text("+50").font(.caption2).foregroundStyle(AppColors.textSecondary)
+                    Spacer()
+                    Text("♯").font(.caption).foregroundStyle(AppColors.textSecondary)
+                }
+                .frame(width: 320)
+                .offset(y: 24)
             }
-            .frame(width: 320)
-            .offset(y: 30)
         }
-        .frame(height: 56)
+        .padding(.horizontal, 12)
+        .padding(.bottom, 14)
+        .background(AppColors.surface.opacity(0.92), in: RoundedRectangle(cornerRadius: 22))
         .animation(.easeOut(duration: 0.1), value: cents)
     }
 

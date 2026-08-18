@@ -9,7 +9,7 @@ enum TempoMode: String, CaseIterable {
 
 /// 点击音色。
 enum SoundStyle: String, CaseIterable {
-    case classic, woodblock, hiihat, cowbell, digital
+    case classic, woodblock, hihat, cowbell, digital
 
     /// 普通拍资源名（不含扩展）。
     var normalAsset: String { "click_\(rawValue)" }
@@ -20,7 +20,7 @@ enum SoundStyle: String, CaseIterable {
         switch self {
         case .classic: return NSLocalizedString("sound_classic", comment: "")
         case .woodblock: return NSLocalizedString("sound_woodblock", comment: "")
-        case .hiihat: return NSLocalizedString("sound_hihat", comment: "")
+        case .hihat: return NSLocalizedString("sound_hihat", comment: "")
         case .cowbell: return NSLocalizedString("sound_cowbell", comment: "")
         case .digital: return NSLocalizedString("sound_digital", comment: "")
         }
@@ -247,7 +247,8 @@ final class MetronomeEngine {
 
     private func loadSounds() {
         normalPlayer = makePlayer(asset: soundStyle.normalAsset)
-        accentPlayer = makePlayer(asset: soundStyle.accentAsset)
+        // accent 资源缺失时复用 normal,避免因单个文件缺失导致整体不可播放。
+        accentPlayer = makePlayer(asset: soundStyle.accentAsset) ?? normalPlayer
         applyVolume()
     }
 

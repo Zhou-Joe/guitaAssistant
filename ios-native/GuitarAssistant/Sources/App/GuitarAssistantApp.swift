@@ -31,7 +31,6 @@ struct GuitarAssistantApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
-                .preferredColorScheme(.dark)
                 .tint(AppColors.cta)
                 .environment(metronome)
                 .environment(errorState)

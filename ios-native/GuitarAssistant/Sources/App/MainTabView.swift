@@ -6,6 +6,8 @@ struct MainTabView: View {
     // 支持 launch argument 指定初始 tab，便于验证（如 -initialTab metronome）。
     /// 主题管理(body 内读取 mode 以建立观察依赖)。
     private let theme = ThemeManager.shared
+    /// 系统深浅色(system 主题模式下联动重建)。
+    @Environment(\.colorScheme) private var systemScheme
     @State private var selectedTab: Int = {
         let args = ProcessInfo.processInfo.arguments
         if let idx = args.firstIndex(of: "-initialTab"), idx + 1 < args.count {
@@ -66,10 +68,12 @@ struct MainTabView: View {
                     .padding(.bottom, 88)
             }
         }
-        // 系统 UI(导航/Tab 栏、键盘等)跟随应用内主题;
-        // .id(mode) 让主题切换时整树重建——所有 AppColors 即时重算,免重启换肤。
-        .id(theme.mode)
-        .preferredColorScheme(theme.mode == .dark ? .dark : .light)
+        // 根背景铺主题色(窗口底色与主题一致)。
+        .background(AppColors.background.ignoresSafeArea())
+        // 系统 UI(导航/Tab 栏、键盘等)跟随应用内主题(system 模式传 nil);
+        // .id 含系统深浅色:主题切换或系统外观变化时整树重建,即时换肤。
+        .id("\(theme.mode.rawValue)-\(systemScheme)")
+        .preferredColorScheme(theme.preferredScheme)
         .onOpenURL { url in
             // guitarassistant://recording / guitarassistant://aiConfig
             deepLink = DeepLink(rawValue: url.host ?? "")

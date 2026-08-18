@@ -4,11 +4,13 @@ import SwiftUI
 enum AppThemeMode: String, CaseIterable {
     case dark
     case light
+    case system
 
     var displayName: String {
         switch self {
         case .dark: return NSLocalizedString("theme_dark", comment: "")
         case .light: return NSLocalizedString("theme_light", comment: "")
+        case .system: return NSLocalizedString("theme_system", comment: "")
         }
     }
 }
@@ -23,6 +25,22 @@ final class ThemeManager {
         didSet { UserDefaults.standard.set(mode.rawValue, forKey: "appTheme") }
     }
 
+    /// 解析后的实际外观:.system 时读系统深浅色。
+    var resolvedIsDark: Bool {
+        if mode == .dark { return true }
+        if mode == .light { return false }
+        return UIScreen.main.traitCollection.userInterfaceStyle == .dark
+    }
+
+    /// system 模式下 preferredColorScheme 传 nil(真正跟随系统)。
+    var preferredScheme: ColorScheme? {
+        switch mode {
+        case .dark: return .dark
+        case .light: return .light
+        case .system: return nil
+        }
+    }
+
     private init() {
         mode = AppThemeMode(rawValue: UserDefaults.standard.string(forKey: "appTheme") ?? "") ?? .dark
     }
@@ -31,58 +49,60 @@ final class ThemeManager {
 enum AppColors {
     /// 当前主题(默认夜间)。
     static var mode: AppThemeMode { ThemeManager.shared.mode }
+    /// 解析后的深浅色(所有语义色按它切换)。
+    private static var isDark: Bool { ThemeManager.shared.resolvedIsDark }
 
     // MARK: - 语义色(夜间 / 日间)
 
-    static var primary: Color { mode == .dark
+    static var primary: Color { isDark
         ? Color(hex: 0x1E1B4B)      // Indigo 950
         : Color(hex: 0x8B7EC8) }    // 柔雾紫
-    static var secondary: Color { mode == .dark
+    static var secondary: Color { isDark
         ? Color(hex: 0x4338CA)      // Indigo 700
         : Color(hex: 0xA797E3) }    // 淡藤紫
-    static var cta: Color { mode == .dark
+    static var cta: Color { isDark
         ? Color(hex: 0x22C55E)      // Green 500
         : Color(hex: 0x58C273) }    // 嫩芽绿
-    static var error: Color { mode == .dark
+    static var error: Color { isDark
         ? Color(hex: 0xEF4444)      // Red 500
         : Color(hex: 0xFF8A80) }    // 珊瑚粉
-    static var warning: Color { mode == .dark
+    static var warning: Color { isDark
         ? Color(hex: 0xF59E0B)      // Amber 500
         : Color(hex: 0xF2A65A) }    // 杏子橙
 
-    static var background: Color { mode == .dark
+    static var background: Color { isDark
         ? Color(hex: 0x0F0F23)      // 深海军蓝
         : Color(hex: 0xFFF6EC) }    // 奶油米白
-    static var surface: Color { mode == .dark
+    static var surface: Color { isDark
         ? Color(hex: 0x1A1A2E)      // 卡片、面板
         : Color(hex: 0xFFFFFF) }    // 纯白卡片(暖底上浮起)
-    static var surfaceElevated: Color { mode == .dark
+    static var surfaceElevated: Color { isDark
         ? Color(hex: 0x252542)
         : Color(hex: 0xFFEFD9) }    // 蜜桃奶油
 
-    static var textPrimary: Color { mode == .dark
+    static var textPrimary: Color { isDark
         ? Color(hex: 0xF8FAFC)
         : Color(hex: 0x53463C) }    // 可可棕
-    static var textSecondary: Color { mode == .dark
+    static var textSecondary: Color { isDark
         ? Color(hex: 0x94A3B8)
         : Color(hex: 0x9B8B7D) }    // 暖灰棕
-    static var textMuted: Color { mode == .dark
+    static var textMuted: Color { isDark
         ? Color(hex: 0x64748B)
         : Color(hex: 0xBFB0A3) }    // 燕麦灰
 
     // MARK: - 功能卡片强调色
 
-    static var accentTuner: Color { mode == .dark
+    static var accentTuner: Color { isDark
         ? Color(hex: 0x22C55E) : Color(hex: 0x58C273) }        // 嫩芽绿
-    static var accentMetronome: Color { mode == .dark
+    static var accentMetronome: Color { isDark
         ? Color(hex: 0x4338CA) : Color(hex: 0x8B7EC8) }        // 柔雾紫
-    static var accentFavorites: Color { mode == .dark
+    static var accentFavorites: Color { isDark
         ? Color(hex: 0xF59E0B) : Color(hex: 0xF2B04F) }        // 蜂蜜黄
-    static var accentRecording: Color { mode == .dark
+    static var accentRecording: Color { isDark
         ? Color(hex: 0xEF4444) : Color(hex: 0xFF8A80) }        // 珊瑚粉
-    static var accentAnalysis: Color { mode == .dark
+    static var accentAnalysis: Color { isDark
         ? Color(hex: 0x8B5CF6) : Color(hex: 0xB79CE8) }        // 香芋紫
-    static var accentSettings: Color { mode == .dark
+    static var accentSettings: Color { isDark
         ? Color(hex: 0x64748B) : Color(hex: 0xC0B6AC) }        // 亚麻灰
 }
 

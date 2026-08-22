@@ -1,12 +1,16 @@
 import Foundation
+import CoreGraphics
+import CoreText
 
-/// 数字形状分类器（纯算法，无 UI/平台依赖，可单元测试）。
+/// 数字形状分类器:多字体软模板 + 高度归一化 + 偏移对齐匹配。
 ///
-/// 基于 Audiveris 维护者的建议：对孤立数字用形状特征分类而非通用 OCR
-/// （OCR 设计目标是文本行，对孤立小数字识别率低）。
-///
-/// 输入：二值化的数字块像素（相对坐标，0/1）+ 外接矩形宽高。
-/// 输出：0-9 的识别结果 + 置信度。
+/// - 模板:CoreText 高分辨率渲染多种字体,下采样为**墨量密度网格**
+///   (保留抗锯齿/笔画粗细信息,而非硬二值)。
+/// - 归一化:blob 与模板都按**高度铺满网格、水平居中、保留宽高比**
+///   (拉伸归一化会抹掉 "1 窄 0 宽" 这类关键特征)。
+/// - 匹配:软 Dice 系数,并对查询做 ±1 格偏移搜索容忍对齐误差。
+/// - 辅助证据:宽高比一致性(温和罚分);孔洞数(仅在查询确实检出孔时
+///   启用——小字号的孔洞闭合是常态,0 孔不可靠)。
 public enum DigitClassifier {
 
     public struct Blob {
@@ -30,224 +34,261 @@ public enum DigitClassifier {
         }
     }
 
-    /// 分类数字块。
-    public static func classify(_ blob: Blob) -> Result {
-        let w = Double(blob.width)
-        let h = Double(blob.height)
-        guard h > 0 else { return Result(digit: 0, confidence: 0) }
-        let ratio = w / h   // 宽高比
-        let fill = Double(blob.pixels.count) / Double(blob.width * blob.height)   // 填充率
+    // MARK: - 网格与字体
 
-        // 构建 2D 像素网格便于特征提取。
-        let grid = makeGrid(blob)
+    private static let gridW = 36
+    private static let gridH = 48
+    private static let fontNames = [
+        "Helvetica-Bold", "Helvetica",
+        "TimesNewRomanPS-BoldMT", "TimesNewRomanPSMT",
+        "Courier-Bold", "Courier",
+        "Georgia-Bold", "Menlo-Bold", "AvenirNextCondensed-Bold"
+    ]
 
-        // guard width > 0 防除零。
-        guard blob.width > 0 else { return Result(digit: 0, confidence: 0) }
+    // MARK: - 模板缓存
 
-        // 1) 宽高比 < 0.55 且填充率高 → "1"（窄竖条）。
-        if ratio < 0.55 && fill > 0.7 {
-            return Result(digit: 1, confidence: 0.95)
-        }
+    /// 软模板:fonts × digits 的墨量密度网格(值域 [0,1])。
+    private static var templates: [[[Double]]] = []
+    /// 模板模糊变体(粗笔画容错:小字号二值化让笔画相对变粗)。
+    private static var blurredTemplates: [[[Double]]] = []
+    private static var templateHoles: [[Int]] = []
+    private static var templateAspect: [[Double]] = []
+    private static let lock = NSLock()
 
-        // 2) 用孔洞数区分有孔(0/4/6/8/9) vs 无孔(2/3/5/7)。
-        let holes = countHoles(grid: grid, width: blob.width, height: blob.height)
-
-        // 区域密度：上/下/左/右/中。
-        let topD = rowDensity(grid: grid, width: blob.width, height: blob.height,
-                              yStart: 0, yEnd: blob.height / 3)
-        let botD = rowDensity(grid: grid, width: blob.width, height: blob.height,
-                              yStart: blob.height * 2 / 3, yEnd: blob.height)
-        let leftD = columnDensity(grid: grid, width: blob.width, height: blob.height,
-                                   xStart: 0, xEnd: blob.width / 3)
-        let rightD = columnDensity(grid: grid, width: blob.width, height: blob.height,
-                                    xStart: blob.width * 2 / 3, xEnd: blob.width)
-        let midD = columnDensity(grid: grid, width: blob.width, height: blob.height,
-                                  xStart: blob.width / 3, xEnd: blob.width * 2 / 3)
-        let purity = stemPurity(grid: grid, width: blob.width, height: blob.height)
-        let brD = regionDensity(grid: grid, width: blob.width, height: blob.height,
-                                x0: blob.width / 2, x1: blob.width,
-                                y0: blob.height * 2 / 3, y1: blob.height)
-
-        if holes >= 2 {
-            // 两个孔 → 8（吉他品位 8/18 较常见）。
-            return Result(digit: 8, confidence: 0.7)
-        }
-
-        // "7":顶部横杠 + 斜杠左倾 → 顶部密、右下几乎无墨。
-        // (放在纯度规则之前:横杠与斜杠会使部分列产生两段,纯度不高。)
-        if holes == 0, topD > 0.42, brD < 0.10 {
-            return Result(digit: 7, confidence: 0.75)
-        }
-        // "1":单竖笔画(每列几乎只有一段连续黑)。带旗衬线的字体宽度可到
-        // 0.85,旧规则(ratio<0.55)会漏。
-        if holes == 0, purity >= 0.72, ratio < 0.9 {
-            return Result(digit: 1, confidence: 0.85)
-        }
-
-        if holes == 1 {
-            // 单孔数字：0/4/6/9。
-            // 0：上下左右都较均匀（环形），ratio ≈ 1。
-            if abs(topD - botD) < 0.15 && abs(leftD - rightD) < 0.15 {
-                return Result(digit: 0, confidence: 0.85)
+    private static func ensureTemplates() {
+        lock.lock()
+        defer { lock.unlock() }
+        guard templates.isEmpty else { return }
+        var t: [[[Double]]] = []
+        var b: [[[Double]]] = []
+        var holes: [[Int]] = []
+        var aspects: [[Double]] = []
+        for font in fontNames {
+            var row: [[Double]] = [], rowB: [[Double]] = [], rowH: [Int] = [], rowA: [Double] = []
+            for d in 0...9 {
+                let g = renderSoftTemplate(digit: d, fontName: font)
+                row.append(g.ink)
+                rowB.append(blur(g.ink))
+                rowH.append(g.holes); rowA.append(g.aspect)
             }
-            // 4：右上有竖线+左上有斜线，孔在右上，底部开放。
-            if topD > botD && rightD > leftD {
-                return Result(digit: 4, confidence: 0.65)
-            }
-            // 6：底部有完整弧（botD 高），顶部开放。
-            if botD > topD && leftD > 0.3 {
-                return Result(digit: 6, confidence: 0.6)
-            }
-            // 9：顶部有完整弧（topD 高），底部开放。
-            if topD > botD && leftD > 0.3 {
-                return Result(digit: 9, confidence: 0.6)
-            }
-            // 默认有孔 → 0（吉他谱最常见）。
-            return Result(digit: 0, confidence: 0.55)
+            t.append(row); b.append(rowB); holes.append(rowH); aspects.append(rowA)
         }
-
-        // 无孔数字：2/3/5/7。
-        // 7：宽高比小（斜线），topD 高且 leftD 低（从右上到左下）。
-        if topD > 0.4 && leftD < 0.15 && botD < 0.2 {
-            return Result(digit: 7, confidence: 0.7)
-        }
-        // 5：上半部分完整弧（topD 高），下半右侧有一条竖线（rightD 中等），
-        //   且左下角开放（bottom-left 少）。
-        if topD > 0.35 && rightD > leftD && midD < 0.3 {
-            return Result(digit: 5, confidence: 0.6)
-        }
-        // 2 vs 3：2 底部有贯穿横杠（左下象限有墨）；3 开口朝左（左下几乎无墨）。
-        let blD = regionDensity(grid: grid, width: blob.width, height: blob.height,
-                                x0: 0, x1: blob.width / 2,
-                                y0: blob.height * 2 / 3, y1: blob.height)
-        // 3：两个向左的半圆，中间列密度高，右侧密度高。
-        if midD > 0.35 && rightD > leftD {
-            if blD < 0.10 { return Result(digit: 3, confidence: 0.75) }
-            return Result(digit: 2, confidence: 0.65)
-        }
-        // 2：顶部弯+底部横，中间少，右上有笔画。
-        if rightD > leftD || midD < 0.35 {
-            return Result(digit: 2, confidence: 0.7)
-        }
-        // 默认。
-        return Result(digit: 2, confidence: 0.5)
+        templates = t
+        blurredTemplates = b
+        templateHoles = holes
+        templateAspect = aspects
     }
 
-    // MARK: - 特征提取辅助
+    /// 高分辨率渲染 → bbox 裁剪 → 高度归一化密度网格。
+    private static func renderSoftTemplate(digit: Int, fontName: String)
+        -> (ink: [Double], holes: Int, aspect: Double) {
+        let empty = [Double](repeating: 0, count: gridW * gridH)
+        let fontSize: CGFloat = 320
+        let font = CTFontCreateWithName(fontName as CFString, fontSize, nil)
+        let attr = [kCTFontAttributeName: font] as CFDictionary
+        guard let attrString = CFAttributedStringCreate(nil, "\(digit)" as CFString, attr) else {
+            return (empty, 0, 0.6)
+        }
+        let line = CTLineCreateWithAttributedString(attrString)
+        let W = 512, H = 512
+        var px = [UInt8](repeating: 255, count: W * H)
+        guard let ctx = CGContext(data: &px, width: W, height: H,
+                                  bitsPerComponent: 8, bytesPerRow: W,
+                                  space: CGColorSpaceCreateDeviceGray(),
+                                  bitmapInfo: CGImageAlphaInfo.none.rawValue) else {
+            return (empty, 0, 0.6)
+        }
+        ctx.textMatrix = CGAffineTransform(scaleX: 1, y: -1)
+        ctx.textPosition = CGPoint(x: 96, y: 384)
+        CTLineDraw(line, ctx)
 
-    private static func makeGrid(_ blob: Blob) -> [[Bool]] {
-        var grid = Array(repeating: Array(repeating: false, count: blob.width), count: blob.height)
-        for (x, y) in blob.pixels where y < blob.height && x < blob.width {
-            grid[y][x] = true
+        var minX = W, maxX = -1, minY = H, maxY = -1
+        for y in 0..<H {
+            for x in 0..<W where px[y * W + x] < 128 {
+                minX = min(minX, x); maxX = max(maxX, x)
+                minY = min(minY, y); maxY = max(maxY, y)
+            }
         }
-        return grid
-    }
+        guard maxX >= minX, maxY >= minY else { return (empty, 0, 0.6) }
+        let bw = maxX - minX + 1, bh = maxY - minY + 1
+        let aspect = Double(bw) / Double(bh)
 
-    /// 计算封闭孔洞数（白像素被黑像素完全包围的区域）。
-    /// 用"对白像素 flood fill，触及边界的为背景，未触及的为孔"。
-    private static func countHoles(grid: [[Bool]], width: Int, height: Int) -> Int {
-        guard height > 2 && width > 2 else { return 0 }
-        // visitedWhite: 是否已访问的白像素
-        var visited = Array(repeating: Array(repeating: false, count: width), count: height)
-        // 从边界白像素 flood fill，标记为"背景"（非孔）
-        var stack = [(Int, Int)]()
-        for x in 0..<width {
-            if !grid[0][x] { stack.append((x, 0)) }
-            if !grid[height-1][x] { stack.append((x, height-1)) }
-        }
-        for y in 0..<height {
-            if !grid[y][0] { stack.append((0, y)) }
-            if !grid[y][width-1] { stack.append((width-1, y)) }
-        }
-        while let (x, y) = stack.popLast() {
-            if x < 0 || x >= width || y < 0 || y >= height { continue }
-            if visited[y][x] || grid[y][x] { continue }
-            visited[y][x] = true
-            stack.append((x+1, y)); stack.append((x-1, y))
-            stack.append((x, y+1)); stack.append((x, y-1))
-        }
-        // 未访问的白像素 = 孔。
-        var holes = 0
-        for y in 1..<(height-1) {
-            for x in 1..<(width-1) {
-                if !grid[y][x] && !visited[y][x] {
-                    holes += 1
-                    // 标记同孔的像素避免重复计数。
-                    var fillStack = [(x, y)]
-                    while let (fx, fy) = fillStack.popLast() {
-                        if fx < 0 || fx >= width || fy < 0 || fy >= height { continue }
-                        if visited[fy][fx] || grid[fy][fx] { continue }
-                        visited[fy][fx] = true
-                        fillStack.append((fx+1, fy)); fillStack.append((fx-1, fy))
-                        fillStack.append((fx, fy+1)); fillStack.append((fx, fy-1))
+        // 高度铺满 gridH(每格 cell 像素),横向按纵横比等比、水平居中。
+        let cell = Double(bh) / Double(gridH)
+        let scaledW = aspect * Double(gridH)          // 网格列数(含小数)
+        let x0 = (Double(gridW) - scaledW) / 2        // 左侧留白(格)
+        let SS = 8                                    // 每格 8×8 子采样
+        var ink = [Double](repeating: 0, count: gridW * gridH)
+        for gy in 0..<gridH {
+            for gx in 0..<gridW {
+                var black = 0
+                for sy in 0..<SS {
+                    let wy = minY + Int((Double(gy) + Double(sy) / Double(SS)) * cell)
+                    guard wy >= minY, wy <= maxY else { continue }
+                    for sx in 0..<SS {
+                        let wx = minX + Int((Double(gx) - x0 + Double(sx) / Double(SS)) * cell)
+                        guard wx >= minX, wx <= maxX else { continue }
+                        if px[wy * W + wx] < 128 { black += 1 }
                     }
+                }
+                ink[gy * gridW + gx] = Double(black) / Double(SS * SS)
+            }
+        }
+        let binary = ink.map { $0 > 0.5 }
+        return (ink, holeCount(binary, w: gridW, h: gridH), aspect)
+    }
+
+    /// 模板模糊:与 4 邻域的 0.6 倍取 max(模拟笔画增粗后的形状)。
+    private static func blur(_ grid: [Double]) -> [Double] {
+        var out = grid
+        for gy in 0..<gridH {
+            for gx in 0..<gridW {
+                let i = gy * gridW + gx
+                var m = grid[i]
+                if gx > 0 { m = max(m, grid[i - 1] * 0.6) }
+                if gx < gridW - 1 { m = max(m, grid[i + 1] * 0.6) }
+                if gy > 0 { m = max(m, grid[i - gridW] * 0.6) }
+                if gy < gridH - 1 { m = max(m, grid[i + gridW] * 0.6) }
+                out[i] = m
+            }
+        }
+        return out
+    }
+
+    /// 封闭孔数:从边界白区洪泛,未触边的白区即孔。
+    private static func holeCount(_ grid: [Bool], w: Int, h: Int) -> Int {
+        var visited = [Bool](repeating: false, count: grid.count)
+        var stack: [Int] = []
+        func pushBorder() {
+            for x in 0..<w {
+                for y in [0, h - 1] {
+                    let i = y * w + x
+                    if !grid[i], !visited[i] { visited[i] = true; stack.append(i) }
+                }
+            }
+            for y in 0..<h {
+                for x in [0, w - 1] {
+                    let i = y * w + x
+                    if !grid[i], !visited[i] { visited[i] = true; stack.append(i) }
+                }
+            }
+        }
+        pushBorder()
+        while let i = stack.popLast() {
+            let x = i % w, y = i / w
+            for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+                let nx = x + dx, ny = y + dy
+                guard nx >= 0, nx < w, ny >= 0, ny < h else { continue }
+                let j = ny * w + nx
+                if !grid[j], !visited[j] { visited[j] = true; stack.append(j) }
+            }
+        }
+        var holes = 0
+        for i in 0..<grid.count where !grid[i] && !visited[i] {
+            holes += 1
+            stack.append(i)
+            visited[i] = true
+            while let j = stack.popLast() {
+                let x = j % w, y = j / w
+                for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+                    let nx = x + dx, ny = y + dy
+                    guard nx >= 0, nx < w, ny >= 0, ny < h else { continue }
+                    let k = ny * w + nx
+                    if !grid[k], !visited[k] { visited[k] = true; stack.append(k) }
                 }
             }
         }
         return holes
     }
 
-    /// 某行范围内黑像素占比。
-    private static func rowDensity(grid: [[Bool]], width: Int, height: Int,
-                                    yStart: Int, yEnd: Int) -> Double {
-        guard yEnd > yStart && width > 0 else { return 0 }
-        var black = 0, total = 0
-        for y in yStart..<min(yEnd, height) {
-            for x in 0..<width {
-                total += 1
-                if grid[y][x] { black += 1 }
-            }
-        }
-        return total > 0 ? Double(black) / Double(total) : 0
-    }
+    // MARK: - 分类
 
-    /// 某列范围内黑像素占比。
-    private static func columnDensity(grid: [[Bool]], width: Int, height: Int,
-                                       xStart: Int, xEnd: Int) -> Double {
-        guard xEnd > xStart && height > 0 else { return 0 }
-        var black = 0, total = 0
-        for y in 0..<height {
-            for x in xStart..<min(xEnd, width) {
-                total += 1
-                if grid[y][x] { black += 1 }
-            }
+    public static func classify(_ blob: Blob) -> Result {
+        ensureTemplates()
+        guard blob.width > 0, blob.height > 0, !blob.pixels.isEmpty else {
+            return Result(digit: 0, confidence: 0)
         }
-        return total > 0 ? Double(black) / Double(total) : 0
-    }
+        let queryAspect = Double(blob.width) / Double(blob.height)
 
-    /// 每列"单段连续黑"的占比(衡量是否为单一竖笔画;"1"接近 1.0)。
-    private static func stemPurity(grid: [[Bool]], width: Int, height: Int) -> Double {
-        guard width > 0, height > 0 else { return 0 }
-        var cols = 0
-        var single = 0
-        for x in 0..<width {
-            var runs = 0
-            var inRun = false
-            for y in 0..<height {
-                if grid[y][x] {
-                    if !inRun { runs += 1; inRun = true }
-                } else {
-                    inRun = false
+        // 查询密度网格:高度铺满、水平居中,四周留 2 格边距供偏移搜索。
+        let pad = 2
+        let qW = gridW + pad * 2, qH = gridH + pad * 2
+        var base = [Double](repeating: 0, count: qW * qH)
+        let scaledW = min(Double(gridW), queryAspect * Double(gridH))
+        let x0 = (Double(gridW) - scaledW) / 2
+        let perCell = max(1.0, Double(blob.pixels.count) / Double(gridW * gridH))
+        // 双线性撒点:像素质量按亚像素位置分给相邻 4 格,
+        // 小字号 blob 的量化锯齿因此被平滑(对齐信息保留)。
+        func splat(_ fx: Double, _ fy: Double, mass: Double) {
+            let cx = min(qW - 2, max(0, Int(fx)))
+            let cy = min(qH - 2, max(0, Int(fy)))
+            let tx = fx - Double(cx), ty = fy - Double(cy)
+            base[cy * qW + cx] += mass * (1 - tx) * (1 - ty)
+            base[cy * qW + cx + 1] += mass * tx * (1 - ty)
+            base[(cy + 1) * qW + cx] += mass * (1 - tx) * ty
+            base[(cy + 1) * qW + cx + 1] += mass * tx * ty
+        }
+        for p in blob.pixels {
+            let fx = Double(p.x) / Double(blob.width) * scaledW + x0 + Double(pad)
+            let fy = Double(p.y) / Double(blob.height) * Double(gridH) + Double(pad)
+            splat(fx, fy, mass: 1 / perCell)
+        }
+        let queryBinary = base.map { min(1.0, $0) > 0.5 }
+        let queryHoles = holeCount(queryBinary, w: qW, h: qH)
+
+        var scores: [Int: Double] = [:]
+        for (f, fontRow) in templates.enumerated() {
+            for d in 0...9 {
+                // 偏移(±1 格) × 纵向尺度(±5%) × 模板变体(原/粗笔画)的软 Dice,
+                // 取最优。小字号 blob 的笔画相对增粗 + bbox 漂移由此容忍。
+                var best = 0.0
+                for tVariant in [fontRow[d], blurredTemplates[f][d]] {
+                  for scale in [0.95, 1.0, 1.05] {
+                    // 尺度实现:对查询行做重采样(取整格中心映射)。
+                    for dy in -1...1 {
+                        for dx in -1...1 {
+                            var inter = 0.0, sumQ = 0.0, sumT = 0.0
+                            for ty in 0..<gridH {
+                                let qyF = (Double(ty) - (Double(gridH) * (scale - 1)) / 2)
+                                          / scale + Double(dy) + Double(pad)
+                                let qy = Int(qyF.rounded())
+                                guard qy >= 0, qy < qH else { continue }
+                                let qRow = qy * qW
+                                let tRow = ty * gridW
+                                for tx in 0..<gridW {
+                                    let qx = tx + dx + pad
+                                    guard qx >= 0, qx < qW else { continue }
+                                    let qv = min(1.0, base[qRow + qx])
+                                    let tv = tVariant[tRow + tx]
+                                    sumQ += qv
+                                    sumT += tv
+                                    if qv > 0, tv > 0 { inter += min(qv, tv) }
+                                }
+                            }
+                            let dice = sumQ + sumT > 0 ? 2 * inter / (sumQ + sumT) : 0
+                            best = max(best, dice)
+                        }
+                    }
+                  }
                 }
-            }
-            if runs > 0 {
-                cols += 1
-                if runs == 1 { single += 1 }
+                var score = best
+                // 宽高比一致性(温和罚分)。
+                score -= min(0.15, abs(queryAspect - templateAspect[f][d]) * 0.3)
+                // 孔洞证据(仅在查询检出孔时启用)。
+                if queryHoles > 0 {
+                    let th = templateHoles[f][d]
+                    if th == queryHoles { score += 0.06 }
+                    else if th < queryHoles { score -= 0.10 }
+                }
+                scores[d] = max(scores[d] ?? 0, score)
             }
         }
-        return cols > 0 ? Double(single) / Double(cols) : 0
-    }
 
-    /// 任意矩形区域的黑像素占比(y 向下,越界自动裁剪)。
-    private static func regionDensity(grid: [[Bool]], width: Int, height: Int,
-                                      x0: Int, x1: Int, y0: Int, y1: Int) -> Double {
-        let xs = max(0, x0)..<min(width, max(0, x1))
-        let ys = max(0, y0)..<min(height, max(0, y1))
-        guard !xs.isEmpty, !ys.isEmpty else { return 0 }
-        var black = 0
-        for y in ys {
-            for x in xs where grid[y][x] { black += 1 }
-        }
-        return Double(black) / Double(xs.count * ys.count)
+        let ranked = scores.sorted { $0.value > $1.value }
+        guard let best = ranked.first else { return Result(digit: 0, confidence: 0) }
+        let second = ranked.count > 1 ? ranked[1].value : 0
+        let margin = max(0, best.value - second)
+        let confidence = min(1, max(0.2, best.value * 0.7 + margin * 3.0))
+        return Result(digit: best.key, confidence: confidence)
     }
 }

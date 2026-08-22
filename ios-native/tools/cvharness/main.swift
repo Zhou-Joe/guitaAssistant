@@ -1,4 +1,5 @@
 // CV 纯算法验证 harness(macOS 命令行,编译真实生产源文件)。
+import CoreText
 // 用合成数据验证:线带提取、等差拟合(含文字行干扰/缺线/多行谱)、
 // 两位数合并、归弦、小节切分、置信度。
 
@@ -171,17 +172,36 @@ do {
     for y in 0..<12 { px.append((0, y)); px.append((1, y)) }
     let r1 = DigitClassifier.classify(DigitClassifier.Blob(width: 2, height: 12, pixels: px))
     check("分类器识别 1", r1.digit == 1, "实际 \(r1.digit)")
-    // "0":环。
-    px = []
-    let w = 10, h = 12
-    for y in 0..<h {
-        for x in 0..<w {
-            let edge = x == 0 || x == w - 1 || y == 0 || y == h - 1
-            if edge { px.append((x, y)) }
+    // 模板匹配精度:真实字体渲染 0-9(三种字体),准确率应 ≥ 85%。
+    var correct = 0, total = 0
+    for font in ["Helvetica-Bold", "TimesNewRomanPS-BoldMT", "Courier-Bold"] {
+        for d in 0...9 {
+            let ctFont = CTFontCreateWithName(font as CFString, 30, nil)
+            let attr = [kCTFontAttributeName: ctFont] as CFDictionary
+            let line = CTLineCreateWithAttributedString(
+                CFAttributedStringCreate(nil, "\(d)" as CFString, attr)!)
+            let w = 128, h = 128
+            var px2 = [UInt8](repeating: 255, count: w * h)
+            let ctx2 = CGContext(data: &px2, width: w, height: h, bitsPerComponent: 8,
+                                 bytesPerRow: w, space: CGColorSpaceCreateDeviceGray(),
+                                 bitmapInfo: CGImageAlphaInfo.none.rawValue)!
+            ctx2.textMatrix = CGAffineTransform(scaleX: 1, y: -1)
+            ctx2.textPosition = CGPoint(x: 30, y: 90)
+            CTLineDraw(line, ctx2)
+            var pts: [(Int, Int)] = []
+            var mnX = 999, mxX = -1, mnY = 999, mxY = -1
+            for y in 0..<h { for x in 0..<w where px2[y * w + x] < 128 {
+                pts.append((x, y))
+                mnX = min(mnX, x); mxX = max(mxX, x); mnY = min(mnY, y); mxY = max(mxY, y)
+            }}
+            let blob = DigitClassifier.Blob(width: mxX - mnX + 1, height: mxY - mnY + 1,
+                                            pixels: pts.map { ($0.0 - mnX, $0.1 - mnY) })
+            if DigitClassifier.classify(blob).digit == d { correct += 1 }
+            total += 1
         }
     }
-    let r0 = DigitClassifier.classify(DigitClassifier.Blob(width: w, height: h, pixels: px))
-    check("分类器识别 0", r0.digit == 0, "实际 \(r0.digit)")
+    check("模板匹配精度 ≥85%(真实字体)", Double(correct) / Double(total) >= 0.85,
+          "实际 \(correct)/\(total)")
 }
 
 // MARK: - 6. 端到端:CoreText 渲染仿真六线谱 → 完整像素管线
